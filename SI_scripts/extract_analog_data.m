@@ -6,14 +6,16 @@ function extract_analog_data(src,evt,varargin)
     % current default channels are 1 for the puff data, and 3 for the run data.
     %
     % It does so by creating an Nx2 matrix, where N is the number of expected
-    % frames in the imaging session, and populating it with the mean value of
-    % the "image" displayed in these analog channels after each acquired frame.
+    % frames in the imaging session, and populating it with the minimal value of
+    % the "image" displayed in these analog channels after each acquired
+    % frame. This helps us to detect the momemnt in which a puff, or the
+    % start of the mouse's movement, occurred.
+    
     % The first column of the data is the puff channel data, while the second
     % is the running data. Finally, when the acquisition is done (or
     % aborted), the data is written to disk with the suffix "_analog.txt".
     persistent analog_data_buffer
-    clc
-    disp('Started analog data acq')
+    %clc
     hSI = src.hSI;
 
     % Constant values - should be changed with care!
@@ -26,11 +28,11 @@ function extract_analog_data(src,evt,varargin)
             analog_data_buffer = zeros(hSI.hStackManager.framesPerSlice, 2);
 
         case {'frameAcquired'}
-            mean_puff = mean(hSI.hDisplay.lastFrame{PUFF_DATA_CHANNEL}(:));
-            mean_run = mean(hSI.hDisplay.lastFrame{RUN_DATA_CHANNEL}(:));
-            analog_data_buffer(hSI.hDisplay.lastFrameNumber, :) = [mean_puff, mean_run];
+            min_puff = min(hSI.hDisplay.lastFrame{PUFF_DATA_CHANNEL}(:));
+            min_run = min(hSI.hDisplay.lastFrame{RUN_DATA_CHANNEL}(:));
+            analog_data_buffer(hSI.hDisplay.lastFrameNumber, :) = [min_puff, min_run];
 
-        case {'acqModeDone','acqAbort'}
+        case {'acqModeDone'}
             disp('Writing analog data to disk')
             file_name = hSI.hScan2D.logFileStem;
             file_path = hSI.hScan2D.logFilePath;
