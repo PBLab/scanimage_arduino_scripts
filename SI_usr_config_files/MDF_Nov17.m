@@ -16,7 +16,7 @@ simulated = false;                  % Boolean for activating simulated mode. For
 components = {};                    % Cell array of optional components to load. Ex: {'dabs.thorlabs.ECU1' 'dabs.thorlabs.BScope2'}
 
 %Data file location
-dataDir = 'C:\Users\user\Desktop';       % Directory to store persistent configuration and calibration data. '[MDF]' will be replaced by the MDF directory
+dataDir = '[MDF]\ConfigData';       % Directory to store persistent configuration and calibration data. '[MDF]' will be replaced by the MDF directory
 
 startUpScript = '';
 

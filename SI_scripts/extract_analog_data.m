@@ -19,7 +19,7 @@ function extract_analog_data(src,evt,varargin)
     hSI = src.hSI;
 
     % Constant values - should be changed with care!
-    PUFF_DATA_CHANNEL = 1;  
+    PUFF_DATA_CHANNEL = 4;  
     RUN_DATA_CHANNEL = 3;
     FRAME_DELAY_OF_RUN_CHANNEL = -0.7667;  % seconds
 
