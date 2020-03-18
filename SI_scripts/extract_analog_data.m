@@ -32,7 +32,7 @@ function extract_analog_data(src,evt,varargin)
             min_run = min(hSI.hDisplay.lastFrame{RUN_DATA_CHANNEL}(:));
             analog_data_buffer(hSI.hDisplay.lastFrameNumber, :) = [min_puff, min_run];
 
-        case {'acqModeDone'}
+        case {'acqModeDone', 'acqAbort'}
             disp('Writing analog data to disk')
             file_name = hSI.hScan2D.logFileStem;
             file_path = hSI.hScan2D.logFilePath;
