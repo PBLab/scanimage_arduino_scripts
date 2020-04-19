@@ -43,7 +43,7 @@ function extract_analog_data(src,evt,varargin)
             % and the time the data arrives at the analog input
             delay_in_frames = ceil(FRAME_DELAY_OF_RUN_CHANNEL * hSI.hRoiManager.scanFrameRate);
             analog_data_buffer(:, 2) = circshift(analog_data_buffer(:, 2), delay_in_frames);
-            analog_data_buffer(end + delay_in_frames - 1:end, 2) = 0;  % account for circularity of shift
+            analog_data_buffer(end + uint16(delay_in_frames) - 1:end, 2) = 0;  % account for circularity of shift
             csvwrite(file_name, analog_data_buffer);
 
     end

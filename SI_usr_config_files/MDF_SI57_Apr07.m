@@ -3,7 +3,7 @@
 %% ScanImage
 
 % Global microscope properties
-objectiveResolution = 93408.3;     % Resolution of the objective in microns/degree of scan angle
+objectiveResolution = 15;     % Resolution of the objective in microns/degree of scan angle
 
 % Simulated mode
 simulated = false;     % Boolean for activating simulated mode. For normal operation, set to 'false'. For operation without NI hardware attached, set to 'true'.
@@ -42,18 +42,18 @@ beamDaqs(1).displayNames = {'ChameleonBeam' 'OrangeBeam'};     % Optional string
 beamDaqs(1).voltageRanges = [1.8 1.8];     % Scalar or array of values specifying voltage range to use for each beam. Scalar applies to each beam.
 
 beamDaqs(1).calInputChanIDs = [0 0];     % Array of integers specifying AI channel IDs, one for each beam modulation channel. Values of nan specify no calibration for particular beam.
-beamDaqs(1).calOffsets = [-0.00019921 -0.000223803];     % Array of beam calibration offset voltages for each beam calibration channel
+beamDaqs(1).calOffsets = [-0.000613602 -0.000589141];     % Array of beam calibration offset voltages for each beam calibration channel
 beamDaqs(1).calUseRejectedLight = [false false];     % Scalar or array indicating if rejected light (rather than transmitted light) for each beam's modulation device should be used to calibrate the transmission curve
 beamDaqs(1).calOpenShutterIDs = 1;     % Array of shutter IDs that must be opened for calibration (ie shutters before light modulation device).
 
 %% Motors
 % Motor used for X/Y/Z motion, including stacks.
 scaleXYZ = [1 1 1];     % Defines scaling factors for axes.
-axisMovesObjective = [true true true];     % Defines if XYZ axes move sample (false) or objective (true)
+axisMovesObjective = [false false false];     % Defines if XYZ axes move sample (false) or objective (true)
 
-motors(1).name = 'MPC200';     % User defined name of the motor controller
+motors(1).name = 'MPC-200';     % User defined name of the motor controller
 motors(1).controllerType = 'Sutter MPC200';     % If supplied, one of {'sutter.mp285', 'sutter.mpc200', 'thorlabs.mcm3000', 'thorlabs.mcm5000', 'scientifica', 'pi.e665', 'pi.e816', 'npoint.lc40x', 'bruker.MAMC'}.
-motors(1).dimensions = 'XYZ';     % Assignment of stage dimensions to SI dimensions. Can be any combination of X,Y,Z,- e.g. XY- only uses the first two axes as X and Y axes
+motors(1).dimensions = '---';     % Assignment of stage dimensions to SI dimensions. Can be any combination of X,Y,Z,- e.g. XY- only uses the first two axes as X and Y axes
 
 %% FastZ
 % FastZ hardware used for fast axial motion, supporting fast stacks and/or volume imaging
@@ -84,7 +84,7 @@ fieldCurveZ1 = 0;
 fieldCurveRx1 = 0;
 fieldCurveRy1 = 0;
 
-%% ResScan (ResScanner)
+%% ResScan (ImagingScanner)
 simulated = false;     % This scanner is simulated
 
 nominalResScanFreq = 7910;     % [Hz] nominal frequency of the resonant scanner
@@ -106,22 +106,22 @@ externalSampleClockRate = [];     % [Hz]: nominal frequency of the external samp
 enableRefClkOutput = false;     % Enables/disables the 10MHz reference clock output on PFI14 of the digitalIODevice
 
 % Galvo mirror settings
-galvoDeviceName = 'PXI1Slot2';     % String identifying the NI-DAQ board to be used to control the galvo(s). The name of the DAQ-Device can be seen in NI MAX. e.g. 'Dev1' or 'PXI1Slot3'. This DAQ board needs to be installed in the same PXI chassis as the FPGA board specified in section
+galvoDeviceName = 'PXI1Slot3';     % String identifying the NI-DAQ board to be used to control the galvo(s). The name of the DAQ-Device can be seen in NI MAX. e.g. 'Dev1' or 'PXI1Slot3'. This DAQ board needs to be installed in the same PXI chassis as the FPGA board specified in section
 galvoAOChanIDX = 0;     % The numeric ID of the Analog Output channel to be used to control the X Galvo. Can be empty for standard Resonant Galvo scanners.
-galvoAOChanIDY = 0;     % The numeric ID of the Analog Output channel to be used to control the Y Galvo.
+galvoAOChanIDY = 1;     % The numeric ID of the Analog Output channel to be used to control the Y Galvo.
 
 galvoAIChanIDX = 0;     % The numeric ID of the Analog Input channel for the X Galvo feedback signal.
-galvoAIChanIDY = 1;     % The numeric ID of the Analog Input channel for the Y Galvo feedback signal.
+galvoAIChanIDY = 0;     % The numeric ID of the Analog Input channel for the Y Galvo feedback signal.
 
-xGalvoAngularRange = 15;     % max range in optical degrees (pk-pk) for x galvo if present
+xGalvoAngularRange = 20;     % max range in optical degrees (pk-pk) for x galvo if present
 yGalvoAngularRange = 20;     % max range in optical degrees (pk-pk) for y galvo
 extendedRggFov = false;     % If true and x galvo is present, addressable FOV is combination of resonant FOV and x galvo FOV.
 
 galvoVoltsPerOpticalDegreeX = 1;     % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
 galvoVoltsPerOpticalDegreeY = 1;     % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
 
-galvoParkDegreesX = 0;     % Numeric [deg]: Optical degrees from center position for X galvo to park at when scanning is inactive
-galvoParkDegreesY = 10;     % Numeric [deg]: Optical degrees from center position for Y galvo to park at when scanning is inactive
+galvoParkDegreesX = -10;     % Numeric [deg]: Optical degrees from center position for X galvo to park at when scanning is inactive
+galvoParkDegreesY = -10;     % Numeric [deg]: Optical degrees from center position for Y galvo to park at when scanning is inactive
 
 % Resonant mirror settings
 resonantZoomDeviceName = 'PXI1Slot3';     % String identifying the NI-DAQ board to host the resonant zoom analog output. Leave empty to use same board as specified in 'galvoDeviceName'
@@ -165,10 +165,6 @@ LaserTriggerSampleMaskEnable = false;
 LaserTriggerSampleWindow = [0 1];
 scanheadModel = '';
 
-
-%% MPC200 (Motor 1)
-comPort = 3;    %Integer identifying COM port for controller
-
-%% MPC200 (MPC200)
+%% MPC200 (MPC-200)
 comPort = 3;     % Integer identifying COM port for controller
 

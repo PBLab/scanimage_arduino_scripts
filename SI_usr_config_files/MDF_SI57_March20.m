@@ -3,7 +3,7 @@
 %% ScanImage
 
 % Global microscope properties
-objectiveResolution = 93408.3;     % Resolution of the objective in microns/degree of scan angle
+objectiveResolution = 15;     % Resolution of the objective in microns/degree of scan angle
 
 % Simulated mode
 simulated = false;     % Boolean for activating simulated mode. For normal operation, set to 'false'. For operation without NI hardware attached, set to 'true'.
@@ -41,8 +41,8 @@ beamDaqs(1).chanIDs = [0 1];     % Array of integers specifying AO channel IDs, 
 beamDaqs(1).displayNames = {'ChameleonBeam' 'OrangeBeam'};     % Optional string cell array of identifiers for each beam
 beamDaqs(1).voltageRanges = [1.8 1.8];     % Scalar or array of values specifying voltage range to use for each beam. Scalar applies to each beam.
 
-beamDaqs(1).calInputChanIDs = [0 NaN];     % Array of integers specifying AI channel IDs, one for each beam modulation channel. Values of nan specify no calibration for particular beam.
-beamDaqs(1).calOffsets = [-0.000503659 0];     % Array of beam calibration offset voltages for each beam calibration channel
+beamDaqs(1).calInputChanIDs = [0 0];     % Array of integers specifying AI channel IDs, one for each beam modulation channel. Values of nan specify no calibration for particular beam.
+beamDaqs(1).calOffsets = [-0.00101659 -0.00103674];     % Array of beam calibration offset voltages for each beam calibration channel
 beamDaqs(1).calUseRejectedLight = [false false];     % Scalar or array indicating if rejected light (rather than transmitted light) for each beam's modulation device should be used to calibrate the transmission curve
 beamDaqs(1).calOpenShutterIDs = 1;     % Array of shutter IDs that must be opened for calibration (ie shutters before light modulation device).
 
@@ -111,14 +111,14 @@ galvoAOChanIDX = [];     % The numeric ID of the Analog Output channel to be use
 galvoAOChanIDY = 1;     % The numeric ID of the Analog Output channel to be used to control the Y Galvo.
 
 galvoAIChanIDX = [];     % The numeric ID of the Analog Input channel for the X Galvo feedback signal.
-galvoAIChanIDY = [];     % The numeric ID of the Analog Input channel for the Y Galvo feedback signal.
+galvoAIChanIDY = 1;     % The numeric ID of the Analog Input channel for the Y Galvo feedback signal.
 
 xGalvoAngularRange = 15;     % max range in optical degrees (pk-pk) for x galvo if present
 yGalvoAngularRange = 20;     % max range in optical degrees (pk-pk) for y galvo
 extendedRggFov = false;     % If true and x galvo is present, addressable FOV is combination of resonant FOV and x galvo FOV.
 
 galvoVoltsPerOpticalDegreeX = 1;     % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
-galvoVoltsPerOpticalDegreeY = 1;     % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
+galvoVoltsPerOpticalDegreeY = 0.78;     % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
 
 galvoParkDegreesX = 0;     % Numeric [deg]: Optical degrees from center position for X galvo to park at when scanning is inactive
 galvoParkDegreesY = 0;     % Numeric [deg]: Optical degrees from center position for Y galvo to park at when scanning is inactive

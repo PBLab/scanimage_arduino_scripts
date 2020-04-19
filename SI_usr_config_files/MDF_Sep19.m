@@ -44,16 +44,16 @@ beamDaqs(1).displayNames = {'ChameleonBeam' 'OrangeBeam'};                  % Op
 beamDaqs(1).voltageRanges = [1.8 1.8];                % Scalar or array of values specifying voltage range to use for each beam. Scalar applies to each beam.
 
 beamDaqs(1).calInputChanIDs = [0 0];               % Array of integers specifying AI channel IDs, one for each beam modulation channel. Values of nan specify no calibration for particular beam.
-beamDaqs(1).calOffsets = [-0.000825401 -0.00081922];                    % Array of beam calibration offset voltages for each beam calibration channel
+beamDaqs(1).calOffsets = [-0.000627049 -0.000599563];                    % Array of beam calibration offset voltages for each beam calibration channel
 beamDaqs(1).calUseRejectedLight = [false false];        % Scalar or array indicating if rejected light (rather than transmitted light) for each beam's modulation device should be used to calibrate the transmission curve 
 beamDaqs(1).calOpenShutterIDs = 1;             % Array of shutter IDs that must be opened for calibration (ie shutters before light modulation device).
 
 %% Motors
 %Motor used for X/Y/Z motion, including stacks. 
 
-motors(1).controllerType = 'sutter.mp285';           % If supplied, one of {'sutter.mp285', 'sutter.mpc200', 'thorlabs.mcm3000', 'thorlabs.mcm5000', 'scientifica', 'pi.e665', 'pi.e816', 'npoint.lc40x'}.
+motors(1).controllerType = 'sutter.mpc200';           % If supplied, one of {'sutter.mp285', 'sutter.mpc200', 'thorlabs.mcm3000', 'thorlabs.mcm5000', 'scientifica', 'pi.e665', 'pi.e816', 'npoint.lc40x'}.
 motors(1).dimensions = 'XYZ';               % Assignment of stage dimensions to SI dimensions. Can be any combination of X,Y,Z, and R.
-motors(1).comPort = 2;                  % Integer identifying COM port for controller, if using serial communication
+motors(1).comPort = 3;                  % Integer identifying COM port for controller, if using serial communication
 motors(1).customArgs = {};               % Additional arguments to stage controller. Some controller require a valid stageType be specified
 motors(1).invertDim = '--+';                % string with one character for each dimension specifying if the dimension should be inverted. '+' for normal, '-' for inverted
 motors(1).positionDeviceUnits = [4e-08 4e-08 4e-08];      % 1xN array specifying, in meters, raw units in which motor controller reports position. If unspecified, default positionDeviceUnits for stage/controller type presumed.
@@ -128,7 +128,7 @@ yGalvoAngularRange = 20;            % max range in optical degrees (pk-pk) for y
 galvoVoltsPerOpticalDegreeX = 1;  % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
 galvoVoltsPerOpticalDegreeY = 1;  % galvo conversion factor from optical degrees to volts (negative values invert scan direction)
 
-galvoParkDegreesX = -8;             % Numeric [deg]: Optical degrees from center position for X galvo to park at when scanning is inactive
+galvoParkDegreesX = 0;             % Numeric [deg]: Optical degrees from center position for X galvo to park at when scanning is inactive
 galvoParkDegreesY = 0;             % Numeric [deg]: Optical degrees from center position for Y galvo to park at when scanning is inactive
 
 %Resonant mirror settings
