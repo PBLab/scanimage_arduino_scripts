@@ -1,0 +1,23 @@
+License Key: V-916-920-384
+Product: ScanImage Premium
+Version: 2020
+License User: hagaihargil@protonmail.com
+Organization: Pablo Blinder's Lab
+License Contact: Pb@post.tau.ac.il
+Number of Seats: 1
+License Expiration: 
+Service Expiration: 2021-11-30
+Host ID: AEBB-C5FB
+Revoked: false
+License Generated: 2020-12-02
+
+-----BEGIN SIGNATURE-----
+apahvpQXoWYYq6Bj70wuQxyczihGYkTyYU0fExQnsPM
+aRbUCfUy5oDae6w21Mq3rRLGMvXcIzT+od9AFMdU1+5
+Aof46xj2UwUoDoVexYht9ieuPZIhjawV+kyA1Nm3JPn
+SQvK70GM5k2+k4VkDHGhMAVh3+y49coG46WdUqIsIaE
+e7hLDBswUmWTi0sKHvJR1sOAmJESrpMw/WDRprwf9Kc
+9rDQQoqRuec0gbpOvZxTt/Xs9FsdVEVXjicuGJLElLx
+YXrxUUGG6U2VLWGf7MR0kNMDdgom52lt15o/0nzfEyC
+Ftme9sIWWDeZ/3flFWiBgLE4fgjFxJLDLjeT1vgOA==
+-----END SIGNATURE-----
