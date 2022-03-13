@@ -26,6 +26,7 @@ function extract_analog_data(src,evt,varargin)
 
     switch evt.EventName
         case {'acqModeStart'}
+            % Generate analog data file path and buffer
             analog_data_buffer = zeros(hSI.hStackManager.framesPerSlice, 2);
             analog_file_name = hSI.hScan2D.logFileStem;
             if hSI.hScan2D.logFilePath
@@ -35,6 +36,10 @@ function extract_analog_data(src,evt,varargin)
             end
             counter = hSI.hScan2D.logFileCounter;
             analog_file_name = fullfile(file_path,sprintf('%s_%05d_analog.txt',analog_file_name,counter));
+            % Check that all four needed channels are active
+            if numel(hSI.hChannels.channelDisplay) < 4
+               hSI.errorMsg = 'Analog data acquisition is enabled. Make sure that all four channels are displayed.';
+            end
         case {'frameAcquired'}
             min_puff = min(hSI.hDisplay.lastFrame{PUFF_DATA_CHANNEL}(:));
             mean_run = mean(hSI.hDisplay.lastFrame{RUN_DATA_CHANNEL}(:));

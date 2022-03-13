@@ -13,11 +13,11 @@
 filename = struct();
 
 % Enter parameters below:
-filename.exptype = 'TAC';
-filename.mouse = 111;
-filename.day = 0;
-filename.fov = 2;
-filename.condition = 'left';
+filename.exptype = 'left_hemi';
+filename.mouse = 'm19';
+filename.day = '0';
+filename.fov = 3;
+filename.condition = '512px';
 % We record the magnification, pixelization and framerate automatically
 filename.mag = num2str(hSI.hRoiManager.scanZoomFactor);
 filename.px = num2str(hSI.hRoiManager.pixelsPerLine);
@@ -25,7 +25,7 @@ filename.Hz = num2str(int16(hSI.hRoiManager.scanFrameRate));
 % If you wish to add any other metadata, do so in the 'extras' field, in
 % the following manner:
 % filename.extras = {'right_hemisphere', 'no_run_data'};
-filename.extras = {}; 
+filename.extras = {'z'}; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%% Do not change below %%%%%%%%%
