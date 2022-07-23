@@ -1,8 +1,21 @@
-function set_analog_recording(analog_channels)
+function set_analog_recording(hSI,analog_channels)
 
 fprintf('\n Setting up acquisition session...')
-evalin('base','if exist(''dq'');delete(dq);end')
 
+
+ % Generate analog data file path and buffer
+ analog_file_name = hSI.hScan2D.logFileStem;
+ if hSI.hScan2D.logFilePath
+     file_path = hSI.hScan2D.logFilePath;
+ else
+     file_path = 'E:\';
+ end
+ counter = hSI.hScan2D.logFileCounter;
+ analog_file_name = fullfile(file_path,sprintf('%s_%05d_analog.csv',analog_file_name,counter));
+ assignin('base','analog_file_name',analog_file_name);%store for later use 
+
+%set up daq session
+evalin('base','if exist(''dq'');delete(dq);end')
 cmd = 'dq = daq.createSession("ni");';
 
 for ch_i = analog_channels
@@ -15,7 +28,7 @@ end
 cmd =  strcat(cmd, 'dq.IsContinuous=true;');
 
 %%
-cmd =  strcat(cmd,'fid = fopen(''log.csv'',''w'');');
+cmd =  strcat(cmd,sprintf('fid = fopen(''%s'',''w'');',analog_file_name));
 cmd = strcat(cmd, 'lh = dq.addlistener(''DataAvailable'',@(src,event)saveData(fid,event));');
 evalin('base',cmd);
 evalin('base','disp(dq);');

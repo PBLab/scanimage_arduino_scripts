@@ -82,7 +82,7 @@ voltsPerOpticalDegrees = 0.19231;     % volts per optical degrees for the contro
 settleTime = 0.5;     % settle time in seconds to allow the resonant scanner to turn on
 
 % Calibration Settings
-amplitudeToLinePhaseMap = [1 -1.01667e-06;1.111 -1.48333e-06;1.176 -1.45e-06;1.429 -1.75e-06;2 -2.125e-06;2.222 -2.13333e-06;2.5 -2.24167e-06;2.857 -2.29167e-06;3.333 -2.325e-06;3.636 -2.51667e-06;3.922 -2.46667e-06;4 -2.425e-06;5 -2.51667e-06;6.452 -2.175e-06;6.667 -2.55e-06;8 -2.60833e-06;10 -2.63333e-06;20 -2.68333e-06];     % translates an amplitude (degrees) to a line phase (seconds)
+amplitudeToLinePhaseMap = [1 -1.01667e-06;1.111 -1.48333e-06;1.176 -1.45e-06;1.429 -1.75e-06;2 -2.125e-06;2.222 -2.13333e-06;2.5 -2.24167e-06;2.857 -2.29167e-06;3.333 -2.325e-06;3.636 -2.51667e-06;3.922 -2.46667e-06;4 -2.425e-06;5 -2.51667e-06;6.452 -2.175e-06;6.667 -2.55e-06;8 -2.60833e-06;10 -2.63333e-06;20 -2.66667e-06];     % translates an amplitude (degrees) to a line phase (seconds)
 amplitudeToFrequencyMap = [1.429 7930.73;2 7929.19;2.222 7928.94;2.5 7928.14;2.857 7930.61;2.896 7928.3;3.333 7929.02;3.636 7930.08;3.922 7928.48;4 7928.71;5 7928.07;6.667 7925.99;8 7929.04;9.524 7926.77;10 7925.13;12.683 7926.97;20 7926.45];     % translates an amplitude (degrees) to a resonant frequency (Hz)
 amplitudeLUT = zeros(0,2);     % translates a nominal amplitude (degrees) to an output amplitude (degrees)
 

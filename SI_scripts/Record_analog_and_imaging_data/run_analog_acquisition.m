@@ -12,12 +12,19 @@
 % Pablo - Jul 23th 2022.
 
 
+clc
+fprintf('Starting analog and imaging recording...');
 %%prepare analog recording
-analog_channels = [0 1 3];
-set_analog_recording(analog_channels)
+analog_channels = [0 7];
+set_analog_recording(hSI,analog_channels)
 
 %delete(dq);%just for DEV!!!
 
 %% start acquisition
 hSI.startGrab
-start_analog_recording(analog_channels);
+%start_analog_recording;
+
+
+%% display data
+T = readtable(analog_file_name);
+plot(T{:,1},T{:,2:end})
