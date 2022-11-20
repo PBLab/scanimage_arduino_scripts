@@ -30,5 +30,6 @@ cmd =  strcat(cmd, 'dq.IsContinuous=true;');
 %%
 cmd =  strcat(cmd,sprintf('fid = fopen(''%s'',''w'');',analog_file_name));
 cmd = strcat(cmd, 'lh = dq.addlistener(''DataAvailable'',@(src,event)saveData(fid,event));');
+cmd = strcat(cmd, 'lh2 = dq.addlistener(''DataAvailable'',@(src,event)plotData(event));');
 evalin('base',cmd);
 evalin('base','disp(dq);');
