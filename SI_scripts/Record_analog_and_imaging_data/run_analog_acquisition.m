@@ -15,44 +15,54 @@ sample_rate = 1000; %samples per second - for plotting
 clc
 fprintf('Starting analog and imaging recording...');
 %%prepare analog recording
-analog_channels = [0 7];
+analog_channels = struct('DeviceName',[],'Channel',[]);
+analog_channels(1).DeviceName='Dev1';
+analog_channels(1).Channel=[3];%scalar or vector
+analog_channels(2).DeviceName='Dev2';
+analog_channels(2).Channel=0;
 set_analog_recording(hSI,analog_channels)
 
 global ecg_R_vol_thresh
 global mean_peak_dist 
-global analog_buffer
+global analog_buffer_ecg
+global analog_buffer_ttl
 global hr_history
-global h2_line1
-global h2_line2
+global h2_line1 %ecg
+global h2_line2 %bpb
+global h2_line3 %ttl
 global HR_BPM_conv_factor_sec
 
 
 %Set up HR parameters
-ecg_R_vol_thresh = 2; % threshold voltage to detect peaks 
+ecg_R_vol_thresh = 0.5; % threshold voltage to detect peaks 
 mean_peak_dist = 90; % No need to change, unless acquisition parameters are modified 
 HR_sample_window_sec = 1; % Size of window used to compute HR.
 analog_samples_per_sec = 1000;
 HR_sample_window_samples = HR_sample_window_sec*analog_samples_per_sec;
 HR_BPM_conv_factor_sec = 60/HR_sample_window_sec;
 
-
-analog_buffer = zeros (HR_sample_window_samples,1);
+analog_buffer_ecg = zeros (HR_sample_window_samples,1);%keep dedicated buffer for each channels
+analog_buffer_ttl = zeros (HR_sample_window_samples,1);
 hr_history = NaN(analog_samples_per_sec/HR_sample_window_sec,1);
 %% prepare graph output
 figure('windowstyle','docked','Name','Analog data stream')
-h2_axes1=subplot(2,1,1);
-h2_line1 = plot(analog_buffer);
+h2_axes1=subplot(5,1,[1 2]);
+h2_line1 = plot(analog_buffer_ecg);
 ylabel('ECG (V)');
 xlabel('Samples');
-h2_axes2=subplot(2,1,2);
+
+h2_axes2=subplot(5,1,[3 4]);
 h2_line2 = plot(hr_history);
 ylabel('HR (bpm)')
 xlabel('Time (s)');
+hr_history=[];
+
+h3_axes=subplot(5,1,5);
+h2_line3 = plot(analog_buffer_ecg);
+ylabel('TTL (V)');
+xlabel('Samples');
 %% start acquisition
 hSI.startGrab
-%start_analog_recording;
-fprintf('Ending analog and imaging recording...');
-
 
 %% display data sampled at 1000samples / sec
 % analyze_ecg

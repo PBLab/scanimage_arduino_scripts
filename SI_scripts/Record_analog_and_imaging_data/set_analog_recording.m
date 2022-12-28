@@ -18,12 +18,16 @@ fprintf('\n Setting up acquisition session...')
 evalin('base','if exist(''dq'');delete(dq);end')
 cmd = 'dq = daq.createSession("ni");';
 
-for ch_i = analog_channels
-    %we assume all channels recording are of typte "voltage" - this can be
-    %modified in the future to include counters or digital channels.
-    cmd = strcat(cmd,sprintf('dq.addAnalogInputChannel(''Dev1'', ''ai%d'', ''Voltage'');',ch_i));
+%%
+for dev_i = 1 : numel(analog_channels)
+    this_dev_name = analog_channels(dev_i).DeviceName;
+    this_dev_analog_channels = analog_channels(dev_i).Channel;
+    for ch_i = this_dev_analog_channels
+        %we assume all channels recording are of typte "voltage" - this can be
+        %modified in the future to include counters or digital channels.
+        cmd = strcat(cmd,sprintf('dq.addAnalogInputChannel(''%s'', ''ai%d'', ''Voltage'');',this_dev_name,ch_i));
+    end
 end
-
 %cmd =  strcat(cmd,'dq.addAnalogInputChannel(''Dev1'', ''ai6'', ''Voltage'');');
 cmd =  strcat(cmd, 'dq.IsContinuous=true;');
 
