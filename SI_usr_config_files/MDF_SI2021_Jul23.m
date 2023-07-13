@@ -1,31 +1,3 @@
-
-% % % Skip to content
-% % % Pull requests
-% % % Issues
-% % % Marketplace
-% % % Explore
-% % % @rotemper
-% % % PBLab /
-% % % scanimage_arduino_scripts
-% % % Private
-% % % 
-% % % Code
-% % % Issues
-% % % Pull requests
-% % % Actions
-% % % Projects
-% % % Wiki
-% % % Security
-% % % 
-% % % Insights
-% % % 
-% % % scanimage_arduino_scripts/SI_usr_config_files/MDF_SI2020_Dec20.m
-% % % @HagaiHargil
-% % % HagaiHargil Updates for SI 2020.1
-% % % Latest commit 40e4f25 on Jan 6, 2021
-% % % History
-% % % 1 contributor
-% % % 175 lines (133 sloc) 10.3 KB
 % Most Software Machine Data File
 
 %% scanimage.SI (ScanImage)
@@ -42,17 +14,17 @@ shutDownScript = '';     % Name of script that is executed in workspace 'base' a
 fieldCurvatureZs = [];     % Field curvature for mesoscope
 fieldCurvatureRxs = [];     % Field curvature for mesoscope
 fieldCurvatureRys = [];     % Field curvature for mesoscope
+fieldCurvatureTip = 0;     % Field tip for mesoscope
+fieldCurvatureTilt = 0;     % Field tilt for mesoscope
 useJsonHeaderFormat = false;     % Use JSON format for TIFF file header
-
-fieldCurvatureTip = 0;
-fieldCurvatureTilt = 0;
 
 %% scanimage.components.Motors (SI Motors)
 % SI Stage/Motor Component.
-motorXYZ = {'Motor Stage' 'Motor Stage' 'Motor Stage'};     % Defines the motor for ScanImage axes X Y Z.
+motorXYZ = {'MPC200' 'MPC200' 'MPC200'};     % Defines the motor for ScanImage axes X Y Z.
 motorAxisXYZ = [2 1 3];     % Defines the motor axis used for Scanimage axes X Y Z.
 scaleXYZ = [1 1 1];     % Defines scaling factors for axes.
 backlashCompensation = [0 0 0];     % Backlash compensation in um (positive or negative)
+moveTimeout_s = 10;     % Move timeout in seconds
 
 %% scanimage.components.Photostim (SI Photostim)
 photostimScannerName = '';     % Name of scanner (from first MDF section) to use for photostimulation. Must be a linear scanner
@@ -66,12 +38,7 @@ stimActiveOutputChannel = '';     % Digital terminal on stim board to output sti
 beamActiveOutputChannel = '';     % Digital terminal on stim board to output beam active signal. (e.g. on vDAQ: 'D2.7' on NI-DAQ hardware: '/port0/line1'
 slmTriggerOutputChannel = '';     % Digital terminal on stim board to trigger SLM frame flip. (e.g. on vDAQ: 'D2.5' on NI-DAQ hardware: '/port0/line2'
 
-%% dabs.generic.DigitalShutter (Imaging Shutter)
-DOControl = '/PXI1Slot4/PFI0';     % control terminal  e.g. '/vDAQ0/DIO0'
-invertOutput = false;     % invert output drive signal to shutter
-openTime_s = 0.1;     % settling time for shutter in seconds
-
-%% dabs.generic.ResonantScannerAnalog (Res Scanner)
+%% dabs.generic.ResonantScannerAnalog (GalvoRes Resonant Scanner)
 AOZoom = '/PXI1Slot3/AO0';     % zoom control terminal  e.g. '/vDAQ0/AO0'
 DOEnable = '';     % digital enable terminal e.g. '/vDAQ0/D0.1'
 DISync = '/PXI1Slot2/PFI0';     % digital sync terminal e.g. '/vDAQ0/D0.0'
@@ -82,17 +49,18 @@ voltsPerOpticalDegrees = 0.19231;     % volts per optical degrees for the contro
 settleTime = 0.5;     % settle time in seconds to allow the resonant scanner to turn on
 
 % Calibration Settings
-amplitudeToLinePhaseMap = [1 -1.325e-06;1.111 -1.48333e-06;1.163 -1.7e-06;1.176 -1.45e-06;1.25 -1.58333e-06;1.333 -1.68333e-06;1.429 -1.75e-06;1.667 -1.9e-06;1.818 -2e-06;2 -2.08333e-06;2.222 -2.11667e-06;2.5 -2.1e-06;2.857 -2.25e-06;3.333 -2.33333e-06;3.636 -2.51667e-06;3.922 -2.46667e-06;4 -2.43333e-06;5 -2.48333e-06;6.25 -2.50833e-06;6.452 -2.53333e-06;6.667 -2.55833e-06;8 -2.60833e-06;9.091 -2.63333e-06;10 -2.625e-06;11.111 -2.75e-06;11.765 -2.65833e-06;16.667 -2.65833e-06;20 -2.39167e-06];     % translates an amplitude (degrees) to a line phase (seconds)
-amplitudeToFrequencyMap = [0.391 7927.44;0.99 7926.26;1 7928.14;1.053 7929.04;1.111 7926.97;1.176 7925.7;1.25 7928.68;1.333 7922.55;1.429 7926.96;1.538 7925.17;1.667 7923.62;1.818 7926.91;1.961 7925.56;2 7929.19;2.174 7926.35;2.222 7927.69;2.5 7928.14;2.74 7928.36;2.778 7926.39;2.857 7927.4;2.896 7928.3;3.077 7924.8;3.226 7929.51;3.333 7928.69;3.636 7930.08;3.922 7929.18;4 7928.71;4.651 7928.25;4.762 7926.23;4.878 7926.93;5 7928.55;5.556 7926.08;6.25 7927.6;6.452 7927.59;6.665 7925.67;6.667 7928.37;8 7929.04;9.091 7927.43;9.524 7926.77;10 7925.13;10.526 7924.22;11.111 7924.56;12.5 7923.49;12.683 7926.97;14.286 7925.59;15.385 7923.46;16.667 7927.73;20 7923.5];     % translates an amplitude (degrees) to a resonant frequency (Hz)
+amplitudeToLinePhaseMap = zeros(0,2);     % translates an amplitude (degrees) to a line phase (seconds)
+amplitudeToFrequencyMap = zeros(0,2);     % translates an amplitude (degrees) to a resonant frequency (Hz)
 amplitudeLUT = zeros(0,2);     % translates a nominal amplitude (degrees) to an output amplitude (degrees)
 
-%% dabs.generic.GalvoPureAnalog (Y Galvo)
+%% dabs.generic.GalvoPureAnalog (GalvoRes Y-Galvo)
 AOControl = '/PXI1Slot3/AO1';     % control terminal  e.g. '/vDAQ0/AO0'
 AOOffset = '';     % control terminal  e.g. '/vDAQ0/AO0'
 AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
 
 angularRange = 20;     % total angular range in optical degrees (e.g. for a galvo with -20..+20 optical degrees, enter 40)
 voltsPerOpticalDegrees = 0.78;     % volts per optical degrees for the control signal
+voltsOffset = 0;     % voltage to be added to the output
 parkPosition = 0;     % park position in optical degrees
 slewRateLimit = Inf;     % Slew rate limit of the analog output in Volts per second
 
@@ -100,35 +68,7 @@ slewRateLimit = Inf;     % Slew rate limit of the analog output in Volts per sec
 feedbackVoltLUT = zeros(0,2);     % [Nx2] lut translating feedback volts into position volts
 offsetVoltScaling = 1;     % scalar factor for offset volts
 
-%% dabs.generic.BeamModulatorFastAnalog (Imaging Beam)
-AOControl = '/PXI1Slot4/AO0';     % control terminal  e.g. '/vDAQ0/AO0'
-AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
-
-outputRange_V = [0 5];     % Control output range in Volts
-feedbackUsesRejectedLight = false;     % Indicates if photodiode is in rejected path of beams modulator.
-calibrationOpenShutters = {'Imaging Shutter'};     % List of shutters to open during the calibration. (e.g. {'Shutter1' 'Shutter2'}
-
-powerFractionLimit = 1;     % Maximum allowed power fraction (between 0 and 1)
-
-% Calibration data
-powerFraction2ModulationVoltLut = zeros(0,2);
-powerFraction2PowerWattLut = zeros(0,2);
-powerFraction2FeedbackVoltLut = zeros(0,2);
-feedbackOffset_V = 0;
-
-% Advanced Settings. Note: these settings are unused for vDAQ based systems
-modifiedLineClockIn = '';     % Terminal to which external beam trigger is connected. Leave empty for automatic routing via PXI/RTSI bus
-frameClockIn = '';     % Terminal to which external frame clock is connected. Leave empty for automatic routing via PXI/RTSI bus
-referenceClockIn = '';     % Terminal to which external reference clock is connected. Leave empty for automatic routing via PXI/RTSI bus
-referenceClockRate = 1e+07;     % if referenceClockIn is used, referenceClockRate defines the rate of the reference clock in Hz. Default: 10e6Hz
-
-calibrationNumPoints = 100;
-calibrationNumRepeats = 5;
-calibrationAverageSamples = 5;
-calibrationSettlingTime_s = 0.001;
-calibrationFlybackTime_s = 0.2;
-
-%% scanimage.components.scan2d.ResScan (ImagingScanner)
+%% scanimage.components.scan2d.ResScan (MOM)
 % DAQ settings
 rioDeviceID = 'RIO0';     % FlexRIO Device ID as specified in MAX. If empty, defaults to 'RIO0'
 digitalIODeviceName = 'PXI1Slot2';     % String: Device name of the DAQ board or FlexRIO FPGA that is used for digital inputs/outputs (triggers/clocks etc). If it is a DAQ device, it must be installed in the same PXI chassis as the FlexRIO Digitizer
@@ -141,12 +81,12 @@ externalSampleClockRate = 8e+07;     % [Hz]: nominal frequency of the external s
 enableRefClkOutput = false;     % Enables/disables the 10MHz reference clock output on PFI14 of the digitalIODevice
 
 % Scanner settings
-resonantScanner = 'Res Scanner';     % Name of the resonant scanner
+resonantScanner = 'GalvoRes Resonant Scanner';     % Name of the resonant scanner
 xGalvo = '';     % Name of the x galvo scanner
-yGalvo = 'Y Galvo';     % Name of the y galvo scanner
-beams = {'Imaging Beam'};     % beam device names
+yGalvo = 'GalvoRes Y-Galvo';     % Name of the y galvo scanner
+beams = {};     % beam device names
 fastZs = {};     % fastZ device names
-shutters = {'Imaging Shutter'};     % shutter device names
+shutters = {};     % shutter device names
 
 extendedRggFov = false;     % If true and x galvo is present, addressable FOV is combination of resonant FOV and x galvo FOV.
 keepResonantScannerOn = false;     % Always keep resonant scanner on to avoid drift and settling time issues
@@ -185,10 +125,39 @@ LaserTriggerSampleWindow = [0 1];
 % Calibration data
 scannerToRefTransform = [1 0 0;0 1 0;0 0 1];
 
-%% dabs.sutter.MPC200_Async (Motor Stage)
+%% dabs.sutter.MPC200_Async (MPC200)
 comPort = 'COM3';     % Serial port the stage is connected to (e.g. 'COM3')
 
-%% dabs.generic.BeamModulatorFastAnalog (Fixed Beam)
+%% dabs.generic.BeamModulatorFastAnalog (Tunable)
+AOControl = '/PXI1Slot4/AO0';     % control terminal  e.g. '/vDAQ0/AO0'
+AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
+
+outputRange_V = [0 5];     % Control output range in Volts
+feedbackUsesRejectedLight = false;     % Indicates if photodiode is in rejected path of beams modulator.
+calibrationOpenShutters = {};     % List of shutters to open during the calibration. (e.g. {'Shutter1' 'Shutter2'}
+
+powerFractionLimit = 1;     % Maximum allowed power fraction (between 0 and 1)
+
+% Calibration data
+powerFraction2ModulationVoltLut = zeros(0,2);
+powerFraction2PowerWattLut = zeros(0,2);
+powerFraction2FeedbackVoltLut = zeros(0,2);
+feedbackOffset_V = 0;
+
+% Calibration settings
+calibrationNumPoints = 100;     % number of equidistant points to measure within the analog ouptut range
+calibrationAverageSamples = 5;     % per analog output voltage, average N analog input samples. This helps to reduce noise
+calibrationNumRepeats = 5;     % number of times to repeat the calibration routine. the end result is the average of all calibration runs
+calibrationSettlingTime_s = 0.001;     % pause between measurement points. this allows the beam modulation to settle
+calibrationFlybackTime_s = 0.2;     % pause between calibration runs
+
+% Advanced Settings. Note: these settings are unused for vDAQ based systems
+modifiedLineClockIn = '';     % Terminal to which external beam trigger is connected. Leave empty for automatic routing via PXI/RTSI bus
+frameClockIn = '';     % Terminal to which external frame clock is connected. Leave empty for automatic routing via PXI/RTSI bus
+referenceClockIn = '';     % Terminal to which external reference clock is connected. Leave empty for automatic routing via PXI/RTSI bus
+referenceClockRate = 1e+07;     % if referenceClockIn is used, referenceClockRate defines the rate of the reference clock in Hz. Default: 10e6Hz
+
+%% dabs.generic.BeamModulatorFastAnalog (Fix)
 AOControl = '/PXI1Slot4/AO1';     % control terminal  e.g. '/vDAQ0/AO0'
 AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
 
@@ -216,4 +185,10 @@ modifiedLineClockIn = '';     % Terminal to which external beam trigger is conne
 frameClockIn = '';     % Terminal to which external frame clock is connected. Leave empty for automatic routing via PXI/RTSI bus
 referenceClockIn = '';     % Terminal to which external reference clock is connected. Leave empty for automatic routing via PXI/RTSI bus
 referenceClockRate = 1e+07;     % if referenceClockIn is used, referenceClockRate defines the rate of the reference clock in Hz. Default: 10e6Hz
+
+%% dabs.generic.DigitalShutter (Imaging Shutter)
+DOControl = '/PXI1Slot4/PFI0';     % control terminal  e.g. '/vDAQ0/DIO0'
+invertOutput = false;     % invert output drive signal to shutter
+openTime_s = 0.1;     % settling time for shutter in seconds
+shutterTarget = 'Excitation';     % one of {', 'Excitation', 'Detection'}
 

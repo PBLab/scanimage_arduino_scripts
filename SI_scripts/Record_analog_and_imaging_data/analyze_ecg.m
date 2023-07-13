@@ -1,10 +1,10 @@
 %analyze ECG last recorded data
-
+analog_file_name = 'fov_1_mag_2p2_512px_30hz_#2_baseline_00001_analog.csv';
 
 %% define parameters
-ttl_vol_thresh = 4.5; %TTL is 5 so this seems failry robust
-ecg_R_vol_thresh = 0.2;
-mean_peak_dist = 100;
+ttl_vol_thresh = 3; %TTL is 5 so this seems failry robust
+ecg_R_vol_thresh = 2;
+mean_peak_dist = 60;
 psth_n_frames = 5;
 
 todo_crop_ecg = 1;
