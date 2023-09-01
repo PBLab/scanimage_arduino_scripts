@@ -16,7 +16,7 @@ R_peaks(locs_Rwave)=1;
 hr = movsum(R_peaks,analog_samples_per_sec)*HR_BPM_conv_factor_sec;
 %% prepare graph output
 [~,f_name] = fileparts(analog_file_name);
-figure('windowstyle','docked','Name',f_name)
+f1 = figure('windowstyle','docked','Name',f_name)
 ax1=subplot(5,1,[1 2]);
 h2_line1 = plot(data.Time,data.ECG);
 hold on
@@ -37,3 +37,4 @@ ylabel('TTL (V)');
 xlabel('Time (s)');
 
 linkaxes([ax1 ax2 ax3],'x')
+set_dark_mode(f1)

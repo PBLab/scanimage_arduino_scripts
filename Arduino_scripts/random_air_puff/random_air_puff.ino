@@ -6,6 +6,11 @@
  * for valve1, the device sends 5V from the devoted BNC
  * for valve2, the device sends 2.5V from the devoted BNC*/
 
+/* Modified by Pablo, Sept 2023
+ * Define number of cycles per puff in variable
+ * Define interval between stims in variables
+ */
+
 //#include <avr/interrupt.h>
   
 //initialize some global variables
@@ -14,6 +19,11 @@ long Delay_randNumber;  //random number from 15 to 19 for time delay in the loop
 /////////////////////////////// These parameters determine the valve activation timing during the cycle /////////////////////////
 long valveOn = 100;           //the valve open time in the activation sequence, in ms
 long valveOff = 100;          //the valve close time in the activation sequence, in ms
+
+long cycles_per_stim = 1; //define here the number of cycles (airpuffs) per stimulus 
+long isi_sec = 5;
+long isi_jitter_sec = 2;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int cyclenum = 0;
 void setup(){
@@ -81,20 +91,20 @@ void Valve_randNumberGen() {
 }
 
 void Delay_randNumberGen() {
-// Loop delay time - random number from 15 to 19
-  Delay_randNumber = random(15,20);
+// Loop delay time - random number from isi_sec +- isi_sec 
+  Delay_randNumber = random(isi_sec-isi_jitter_sec,isi_sec+isi_jitter_sec);
   Serial.print("Random number for time delay (sec) =");
   Serial.println(Delay_randNumber); 
 }
 
 void ActivateValve1() {
-  int i = 1;
+  int i = 0;
   Serial.println("Valve1 will be activated 5 times; 5V is sent to Valve1 BNC");
   Serial.print("Valve ON time (ms)= ");
   Serial.println(valveOn);
   Serial.print("Valve OFF time (ms)= ");
   Serial.println(valveOn);
-  while(i < 6){
+  while(i < cycles_per_stim){
   Serial.print("trial=");
   Serial.println(i);
   digitalWrite(11, HIGH);
@@ -109,13 +119,13 @@ void ActivateValve1() {
 }
 
 void ActivateValve2() {
-  int i = 1;
+  int i = 0;
   Serial.println("Valve2 will be activated 5 times; 2.5V is sent to Valve2 BNC");
   Serial.print("Valve ON time (ms)= ");
   Serial.println(valveOn);
   Serial.print("Valve OFF time (ms)= ");
   Serial.println(valveOn);
-  while(i < 6){
+  while(i < cycles_per_stim){
   Serial.print("trial=");
   Serial.println(i);
   digitalWrite(12, HIGH);

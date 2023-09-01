@@ -54,7 +54,7 @@ analog_buffer_ttl = zeros (HR_sample_window_samples,1);
 analog_buffer_ttl_airpuff = zeros (HR_sample_window_samples,1);
 hr_history = NaN(analog_samples_per_sec/HR_sample_window_sec,1);
 %% prepare graph output
-figure('windowstyle','docked','Name','Analog data stream')
+h2fig = figure('windowstyle','docked','Name','Analog data stream')
 h2_axes1=subplot(5,1,[1 2]);
 h2_line1 = plot(analog_buffer_ecg);
 ylabel('ECG (V)');
@@ -72,6 +72,7 @@ hold on
 h2_line4 = plot(analog_buffer_ttl_airpuff);
 ylabel('TTL (V)');
 xlabel('Samples');
+set_dark_mode(h2fig)
 
 %% ensure user functions are enabled.
 func_names = {'stop_analog_recording','stop_analog_recording','start_analog_recording'};
