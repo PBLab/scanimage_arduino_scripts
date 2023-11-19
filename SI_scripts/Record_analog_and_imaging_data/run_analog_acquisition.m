@@ -41,7 +41,7 @@ global user_func_off
 global analog_samples_per_sec
 
 %Set up HR parameters
-ecg_R_vol_thresh = 0.0005; % threshold voltage to detect peaks 
+ecg_R_vol_thresh = 1; % threshold voltage to detect peaks 
 mean_peak_dist = 80; % No need to change, unless acquisition parameters are modified 
 HR_sample_window_sec = 1; % Size of window used to compute HR.
 analog_samples_per_sec = 1000;

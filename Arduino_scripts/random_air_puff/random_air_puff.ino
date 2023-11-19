@@ -70,7 +70,8 @@ if (digitalRead(10) == HIGH)  //start the loop ONLY if the pin 10 is HIGH
       break;
       case 2:
         {
-          ActivateValve2();
+          //ActivateValve2();
+          ActivateValve1();
         }
       break;
       default: 

@@ -49,8 +49,8 @@ voltsPerOpticalDegrees = 0.19231;     % volts per optical degrees for the contro
 settleTime = 0.5;     % settle time in seconds to allow the resonant scanner to turn on
 
 % Calibration Settings
-amplitudeToLinePhaseMap = [1.538 -1.725e-06;2.222 -2.05833e-06;2.857 -2.30833e-06;3.175 -2.39167e-06;3.333 -2.35e-06;4 -2.36667e-06;4.651 -2.55833e-06;5 -2.45e-06;6.667 -2.5e-06;8.696 -2.58333e-06;10 -2.55e-06;15.385 -2.65833e-06;20 4.16667e-08];     % translates an amplitude (degrees) to a line phase (seconds)
-amplitudeToFrequencyMap = [3.175 7929.97;4 7920.35;4.651 7930.54;5 7926.8;6.061 7928.75;6.667 7919.55;9.091 7919.66;10 7927.13;14.286 7923.25;15.385 7918.15;16.667 7919.31;20 7928.61];     % translates an amplitude (degrees) to a resonant frequency (Hz)
+amplitudeToLinePhaseMap = [2 -2.23333e-06;3.333 -2.34167e-06;4 -2.38333e-06;5 -2.48333e-06;6.667 -2.55e-06;10 -2.60833e-06;16.667 -2.675e-06];     % translates an amplitude (degrees) to a line phase (seconds)
+amplitudeToFrequencyMap = [3.333 7927.53;6.667 7925.91;16.667 7926.7];     % translates an amplitude (degrees) to a resonant frequency (Hz)
 amplitudeLUT = zeros(0,2);     % translates a nominal amplitude (degrees) to an output amplitude (degrees)
 
 %% dabs.generic.GalvoPureAnalog (GalvoRes Y-Galvo)
