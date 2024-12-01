@@ -1,0 +1,23 @@
+License Key: V-916-920-384
+Product: ScanImage Premium
+Version: 2021
+License User: pb@post.tau.ac.il
+Organization: Pablo Blinder's Lab
+License Contact: Pb@post.tau.ac.il
+Number of Seats: 1
+License Expiration: 
+Service Expiration: 2021-11-30
+Host ID: BECD-58E2
+Revoked: false
+License Generated: 2024-12-01
+
+-----BEGIN SIGNATURE-----
+mEdq7sApdckaMtX//ykooo3TD7DPhkceNbVqqTE/d4o
+V2qM5A44XnQMO4NSgsAHhLBINGFvPo4RijVUP48BUKn
+fGBPCoqEO7PIGu1F0thRB6d5IsfOaLS8wEDgxM5B9HR
+9VtOzNKjyiMgY+vOB3S/vfaV4BuFjNcdT3x7lkp7uEp
+yp09Gt7amAuPdxd19adp6/Cm3axNwb+F3ZhVeZvAkA7
+XgfpMPW9xmnmIkxcIicAV1yUZRS10kErLE9o/+mWulC
+NIyzMRYOb4zMOy9tKUORnffKoCD02bJTlJ1UxKiYQiM
+MUXxIh/Q7Ty551py0qHNC0+LUa9NLpQgHo5/+DRYw==
+-----END SIGNATURE-----
