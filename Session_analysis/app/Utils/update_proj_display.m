@@ -16,7 +16,7 @@ end
 
 imagesc(app.ImgProjection,proj)
 axis(app.ImgProjection,'image')
-colormap(app.ImgProjection,'turbo')
+colormap(app.ImgProjection,'gray')
 colorbar(app.ImgProjection,'eastoutside')
 end
 

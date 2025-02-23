@@ -66,33 +66,35 @@ if ~isempty(dir_content)
     path_to_tif = fullfile(path_to_ophys,dir_content.name);
     % stk = scanimage.util.ScanImageTiffReader(path_to_tif);%need to compile mex file
     app.STK = loadmovie(path_to_tif);
+    app.STK_MINMAX = double([min(app.STK(:)),max(app.STK(:))]);
+    %% display  data channel and update slider
+    n_channels = app.PIPELINE.PARAMS.num_channels; %HARDCODED!!!!
+    sig_ch = app.PIPELINE.PARAMS.functional_ch;
+    n_frames = size(app.FRAME_LUT,1);
+
+    %update slider range
+    app.Slider_time.Limits=[1,n_frames];
+    app.Slider_time.Value = 1;
+    imagesc(app.Image,app.STK(:,:,1),app.STK_MINMAX .* [1.05 0.95]);
+    axis(app.Image,'image')
+    colormap(app.Image,'Gray')
+    colorbar(app.Image,'eastoutside')
+
+    logger(app,'Computing and saving projections to derivates')
+    app.PROJ_MAX = squeeze(max(app.STK(:,:,sig_ch:n_channels:end),[],3));
+    app.PROJ_AVG = squeeze(mean(app.STK(:,:,sig_ch:n_channels:end),3));
+    app.PROJ_STD = squeeze(std(single(app.STK(:,:,sig_ch:n_channels:end)),0,3));
+    app.PROJ_MED = squeeze(median(app.STK(:,:,sig_ch:n_channels:end),3));
+
+    imagesc(app.ImgProjection,app.PROJ_MAX)
+    axis(app.ImgProjection,'image')
+    colormap(app.ImgProjection,'Gray')
+    linkaxes([app.Image app.ImgProjection],'xy')
 else
     logger(app,'WARNING - No imaging (.tif) data in ophys directory')
 end
 
-%% display  data channel and update slider
-n_channels = app.PIPELINE.PARAMS.num_channels; %HARDCODED!!!!
-sig_ch = app.PIPELINE.PARAMS.functional_ch;
-n_frames = size(app.FRAME_LUT,1);
 
-%update slider range
-app.Slider_time.Limits=[1,n_frames];
-app.Slider_time.Value = 1;
-imagesc(app.Image,app.STK(:,:,1))
-axis(app.Image,'image')
-colormap(app.Image,'Gray')
-colorbar(app.Image,'eastoutside')
-
-logger(app,'Computing and saving projections to derivates')
-app.PROJ_MAX = squeeze(max(app.STK(:,:,sig_ch:n_channels:end),[],3));
-app.PROJ_AVG = squeeze(mean(app.STK(:,:,sig_ch:n_channels:end),3));
-app.PROJ_STD = squeeze(std(single(app.STK(:,:,sig_ch:n_channels:end)),0,3));
-app.PROJ_MED = squeeze(median(app.STK(:,:,sig_ch:n_channels:end),3));
-
-imagesc(app.ImgProjection,app.PROJ_MAX)
-axis(app.ImgProjection,'image')
-colormap(app.ImImgProjectionage,'Gray')
-linkaxes([app.Image app.ImgProjection],'xy')
 %%
 logger(app,'Done')
 end
