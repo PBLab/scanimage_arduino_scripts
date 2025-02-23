@@ -51,5 +51,8 @@ if (app.ShowStimCheckBox.Value)
     end
 end
 
-%%
-    set(app.Traces,'NextPlot','Replace','Box','off','XLimitMethod','tight','YLimitMethod','tight');
+set(app.Traces,'NextPlot','Replace','Box','off','XLimitMethod','tight','YLimitMethod','tight');
+
+%% compute psth for the traces
+
+[PSTH] = compute_psth(app,ROIS)
