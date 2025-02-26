@@ -20,14 +20,19 @@ frames_before = round(t_before_s/fps);
 frames_after = round(t_after_s/fps);
 frame_i = -frames_before:frames_after;
 n_rois = numel(ROIS);
-figure('Name','Continous Peri stimulus/event ')
+h2fig = figure('Name','Continous Peri stimulus/event ');
 clc
-spi=reshape([1:n_rois*n_stims], n_stims,n_rois)';
+spi=reshape(1:n_rois*n_stims, n_stims,n_rois)';
 sp_counter = 1;
+stim_colors = copper(n_stims);
 for si = 1 : n_stims
     valid_rows = app.STIM_TABLE.stim_id == stims_ids(si);
     stim_frame_stars = app.STIM_TABLE.frame_start(valid_rows);
     stim_loc_i = frame_i+stim_frame_stars;
+    %find out color and stim name
+    stim_name_component = sprintf('Stim%dEditField',si);
+    stim_name = app.(stim_name_component).Value;
+
     for roi_i = 1 : numel(ROIS)
         %get all the events into a matrix (event x time)
 
@@ -36,10 +41,21 @@ for si = 1 : n_stims
         subplot(n_rois,n_stims,(spi(sp_counter)))
         plot(t,Y','Color',[0.5 0.5 0.5])
         hold on
-        plot(t,mean(Y),'Color','k','lineW',2)
-        title(sprintf('Stim(%d), ROI(%d)',si,roi_i))
+        plot(t,mean(Y),'Color',stim_colors(si,:),'lineW',3)
+        title(sprintf('%s stim, ROI(%d)',stim_name,roi_i))
         box off 
+        axis square
+        xlabel('Time (s)')
         sp_counter=sp_counter+1;
     end
 end
+
+%%
+h2a = findobj(h2fig,'Type','Axes');
+max_y = max(max(cell2mat(get(h2a,'ylim'))));
+min_y = min(min(cell2mat(get(h2a,'ylim'))));
+set(h2a,'Ylim',[min_y, max_y])
+
+%%
+%% 
 

@@ -29,6 +29,12 @@ if ~isempty(dir_content)
 
     path_to_analog_file_name = fullfile(path_to_ophys,dir_content.name);
     [app.STIM_TABLE, app.FRAME_LUT,analog_table] = parse_analog_data(path_to_analog_file_name,app.PIPELINE.PARAMS);
+    %% update stim label names
+    stim_v = [3 0.5]
+    for si = 1:n_stims
+        label_component_name = sprintf('Stim%dEditFieldLabel',si);
+        app.(label_component_name).Text = sprintf('%2.1fV',stim_v(si));
+    end
 
     %% write tables to derivates directory
     path_to_derivates = fullfile(app.PATH_TO_SESSION,'derivates');
