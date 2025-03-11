@@ -18,6 +18,7 @@ params.num_channels = str2double(app.NumberofchannelsDropDown.Value);
 params.motion_corr_ch = str2double(app.MotionCorrectionChDropDown.Value);
 params.functional_ch = str2double(app.FunctionalChDropDown.Value);
 
+
 app.PIPELINE.PROC = proc;
 app.PIPELINE.PARAMS = params;
 end

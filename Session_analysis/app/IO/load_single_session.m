@@ -29,8 +29,11 @@ if ~isempty(dir_content)
 
     path_to_analog_file_name = fullfile(path_to_ophys,dir_content.name);
     [app.STIM_TABLE, app.FRAME_LUT,analog_table] = parse_analog_data(path_to_analog_file_name,app.PIPELINE.PARAMS);
+    fps = 1/mean(diff(app.FRAME_LUT{:,2}));
+    app.fpsEditField.Value = num2str(fps);
     %% update stim label names
-    stim_v = [3 0.5]
+    stim_v = unique(app.STIM_TABLE.voltage);
+    n_stims = numel(stim_v);
     for si = 1:n_stims
         label_component_name = sprintf('Stim%dEditFieldLabel',si);
         app.(label_component_name).Text = sprintf('%2.1fV',stim_v(si));
@@ -71,26 +74,36 @@ dir_content = dir(fullfile(path_to_ophys,'*.tif'));
 if ~isempty(dir_content)
     path_to_tif = fullfile(path_to_ophys,dir_content.name);
     % stk = scanimage.util.ScanImageTiffReader(path_to_tif);%need to compile mex file
-    app.STK = loadmovie(path_to_tif);
+    app.STK = bigread4(path_to_tif);
     app.STK_MINMAX = double([min(app.STK(:)),max(app.STK(:))]);
+
     %% display  data channel and update slider
-    n_channels = app.PIPELINE.PARAMS.num_channels; %HARDCODED!!!!
+    n_channels = app.PIPELINE.PARAMS.num_channels;
     sig_ch = app.PIPELINE.PARAMS.functional_ch;
     n_frames = size(app.FRAME_LUT,1);
 
     %update slider range
     app.Slider_time.Limits=[1,n_frames];
+    
     app.Slider_time.Value = 1;
     imagesc(app.Image,app.STK(:,:,1),app.STK_MINMAX .* [1.05 0.95]);
     axis(app.Image,'image')
     colormap(app.Image,'Gray')
     colorbar(app.Image,'eastoutside')
 
+    %% compute image df/f (quick)
+    logger(app,'Computing a quick dff on the entire image')
+    im_dff_calc_quick(app);
+
     logger(app,'Computing and saving projections to derivates')
     app.PROJ_MAX = squeeze(max(app.STK(:,:,sig_ch:n_channels:end),[],3));
     app.PROJ_AVG = squeeze(mean(app.STK(:,:,sig_ch:n_channels:end),3));
     app.PROJ_STD = squeeze(std(single(app.STK(:,:,sig_ch:n_channels:end)),0,3));
     app.PROJ_MED = squeeze(median(app.STK(:,:,sig_ch:n_channels:end),3));
+    app.PROJ_DF_MAX = squeeze(max(app.STK_DF(:,:,sig_ch:n_channels:end),[],3));
+    app.PROJ_DF_AVG = squeeze(mean(app.STK_DF(:,:,sig_ch:n_channels:end),3));
+    app.PROJ_DF_STD = squeeze(std(single(app.STK_DF(:,:,sig_ch:n_channels:end)),0,3));
+    app.PROJ_DF_MED = squeeze(median(app.STK_DF(:,:,sig_ch:n_channels:end),3));
 
     imagesc(app.ImgProjection,app.PROJ_MAX)
     axis(app.ImgProjection,'image')

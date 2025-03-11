@@ -9,7 +9,12 @@ n_obj = numel(obj);
 n_frames = size(app.FRAME_LUT,1);
 sig_ch = app.PIPELINE.PARAMS.functional_ch;
 num_channels = app.PIPELINE.PARAMS.num_channels;
-ROIS = struct('ID',[],'Label',[],'Color',[],'Position',[],'Values',[]);
+ROIS = struct('ID',[],'Label',[],'Color',[],'Position',[],'Values',[],'dff',[]);
+tau_0 = app.tau_0EditField.Value;
+tau_1 = app.tau_0EditField.Value;
+tau_2 = app.tau_0EditField.Value;
+invert_vals = app.InvertCheckBox.Value;
+fps = str2num(app.fpsEditField.Value);
 %% extract and plot average value from pixels in each ROI
 set(app.Traces,'NextPlot','Replace');
 for roi_i = 1:n_obj %stacked LIFO
@@ -22,17 +27,24 @@ for roi_i = 1:n_obj %stacked LIFO
     y2 = y1 + ROIS(roi_i).Position(4);
     vals = app.STK(x1:x2,y1:y2,sig_ch:num_channels:end);
     vals = reshape (vals,prod(size(vals,[1 2])),n_frames);
-    ROIS(roi_i).Values = mean(vals);
+    ROIS(roi_i).Values = double(mean(vals));
+    ROIS(roi_i).dff = dff_calc(ROIS(roi_i).Values,fps,tau_0,tau_1,tau_2,invert_vals);
     ROIS(roi_i).Color = obj(roi_i).Color;
+    yyaxis(app.Traces,'left');
      plot(app.Traces,app.FRAME_LUT.t_sec,ROIS(roi_i).Values,'Color',ROIS(roi_i).Color)
      set(app.Traces,'NextPlot','Add');
+     yyaxis(app.Traces,'right');
+     plot(app.Traces,app.FRAME_LUT.t_sec,ROIS(roi_i).dff,'Color',ROIS(roi_i).Color,'LineStyle','--')
+
 end
 
-
+%%
+yyaxis(app.Traces,'left');
 xlabel(app.Traces,'Time (s)');
 ylabel(app.Traces,'ROI avg');
 
-
+yyaxis(app.Traces,'right');
+ylabel(app.Traces,'dF/F');
 
 
 %% Display stim

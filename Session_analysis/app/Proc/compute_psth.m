@@ -37,24 +37,34 @@ for si = 1 : n_stims
         %get all the events into a matrix (event x time)
 
         Y = ROIS(roi_i).Values(stim_loc_i);
+        DFF = ROIS(roi_i).dff(stim_loc_i);
         %plot
         subplot(n_rois,n_stims,(spi(sp_counter)))
-        plot(t,Y','Color',[0.5 0.5 0.5])
+        yyaxis left;
+        plot(t,Y','Color',[0.5 0.5 0.5],'LineStyle','-','marker','none')
         hold on
         plot(t,mean(Y),'Color',stim_colors(si,:),'lineW',3)
         title(sprintf('%s stim, ROI(%d)',stim_name,roi_i))
         box off 
         axis square
+        ylabel('Intensity (a.u.)')
         xlabel('Time (s)')
+
+        yyaxis right
+        plot(t,DFF','Color',[0.5 0.5 0.5],'LineStyle','--','marker','none')
+        hold on
+        plot(t,mean(DFF),'Color',stim_colors(si,:),'lineW',3,'LineStyle','--')
+        box off 
+        ylabel('\DeltaF /F0')
         sp_counter=sp_counter+1;
     end
 end
 
 %%
-h2a = findobj(h2fig,'Type','Axes');
-max_y = max(max(cell2mat(get(h2a,'ylim'))));
-min_y = min(min(cell2mat(get(h2a,'ylim'))));
-set(h2a,'Ylim',[min_y, max_y])
+% h2a = findobj(h2fig,'Type','Axes');
+% max_y = max(max(cell2mat(get(h2a,'ylim'))));
+% min_y = min(min(cell2mat(get(h2a,'ylim'))));
+% set(h2a,'Ylim',[min_y, max_y])
 
 %%
 %% 
