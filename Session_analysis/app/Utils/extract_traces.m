@@ -4,7 +4,8 @@ function extract_traces(app)
 
 
 %% Find rectangles in current projection
-obj = findobj(app.ImgProjection.Children,'RotationAngle',0);
+% obj = findobj(app.ImgProjection.Children,'RotationAngle',0);
+obj = findobj(app.ImgProjection.Children,'Tag','ROI');
 n_obj = numel(obj);
 n_frames = size(app.FRAME_LUT,1);
 sig_ch = app.PIPELINE.PARAMS.functional_ch;
@@ -17,17 +18,34 @@ invert_vals = app.InvertCheckBox.Value;
 fps = str2num(app.fpsEditField.Value);
 %% extract and plot average value from pixels in each ROI
 set(app.Traces,'NextPlot','Replace');
+[m,n] = size(app.PROJ_MAX);
 for roi_i = 1:n_obj %stacked LIFO
     ROIS(roi_i).ID = roi_i;
     ROIS(roi_i).Label = obj(roi_i).Label;
-    ROIS(roi_i).Position = round(obj(roi_i).Position);%[x y w h]
-    x1 = ROIS(roi_i).Position(1);
-    x2 = x1 + ROIS(roi_i).Position(3);
-    y1 = ROIS(roi_i).Position(2);
-    y2 = y1 + ROIS(roi_i).Position(4);
-    vals = app.STK(x1:x2,y1:y2,sig_ch:num_channels:end);
-    vals = reshape (vals,prod(size(vals,[1 2])),n_frames);
-    ROIS(roi_i).Values = double(mean(vals));
+    % The commented lines worked for rectangles and now we move to polygons
+    % ROIS(roi_i).Position = round(obj(roi_i).Position);%[x y w h]
+    % x1 = ROIS(roi_i).Position(1);
+    % x2 = x1 + ROIS(roi_i).Position(3);
+    % y1 = ROIS(roi_i).Position(2);
+    % y2 = y1 + ROIS(roi_i).Position(4);
+    % vals = app.STK(x1:x2,y1:y2,sig_ch:num_channels:end);
+    % vals = reshape (vals,prod(size(vals,[1 2])),n_frames);
+    %ROIS(roi_i).Values = double(mean(vals));
+    
+    %% find region mask
+    V = obj(roi_i).Position;
+    M = poly2mask(V(:,1),V(:,2),m,n);
+    idx = find(M);
+    idx_offset = m*n;
+    
+    f_sig = sig_ch:num_channels:size(app.STK,3); %index the frames for the signal channel %safeguard 
+    vals = zeros(n_frames,1); 
+    for fi = 1:numel(f_sig)
+        vals(fi) =mean(app.STK(idx + idx_offset *(f_sig(fi)-1)));
+    end
+    
+    %%
+    ROIS(roi_i).Values = vals;
     ROIS(roi_i).dff = dff_calc(ROIS(roi_i).Values,fps,tau_0,tau_1,tau_2,invert_vals);
     ROIS(roi_i).Color = obj(roi_i).Color;
     yyaxis(app.Traces,'left');
@@ -67,4 +85,4 @@ set(app.Traces,'NextPlot','Replace','Box','off','XLimitMethod','tight','YLimitMe
 
 %% compute psth for the traces
 
-[PSTH] = compute_psth(app,ROIS)
+[PSTH] = compute_psth(app,ROIS);

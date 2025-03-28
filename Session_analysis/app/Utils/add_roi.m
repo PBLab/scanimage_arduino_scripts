@@ -7,13 +7,15 @@ function add_roi(app)
 
 roi_colors = lines(256);
 %% find existing rectangles
-obj = findobj(app.ImgProjection.Children,'RotationAngle',0);
+obj = findobj(app.ImgProjection.Children,'Tag','ROI');
 n_obj = numel(obj);
 if n_obj>256;roi_colors = lines(n_obj+1);end
 %%
-h2rect = drawrectangle(app.ImgProjection);
+% h2rect = drawrectangle(app.ImgProjection);
+h2rect = drawpolygon(app.ImgProjection);
 h2rect.Label = sprintf('ROI_%d',n_obj+1);
 h2rect.Color = roi_colors(n_obj+1,:);
+h2rect.Tag='ROI';
 
 %% extract data
 % sig_ch = app.PIPELINE.PARAMS.functional_ch;

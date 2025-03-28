@@ -5,7 +5,7 @@ function dff = dff_calc(data, fps, tau_0, tau_1, tau_2, invert)
     % Parameters
     % ----------
     % data : matrix
-    %     dF/F traces with dimensions (cell x time)
+    %     dF/F traces with dimensions (time x cells. columnwise modified from python version!)
     % fps : float, optional
     %     Frame rate (Hz)
     % tau_0 : float, optional
@@ -49,20 +49,18 @@ end
 
 function f0 = calc_f0(data, tau_1, tau_2, min_per)
     % Create the F_0(t) baseline for the dF/F calculation using a boxcar window.
-    data = data';
     f0 = movmean(data, [tau_1-1, 0], 1, 'Endpoints', 'shrink');
     f0 = movmin(f0, [tau_2-1, 0], 1, 'Endpoints', 'shrink');
     
     % Handle cases where the number of observations is less than min_per
-    f0 = arrayfun(@(col) enforce_min_per(f0(:, col), tau_2, min_per), 1:size(f0, 2), 'UniformOutput', false);
-    f0 = cell2mat(f0);
+    % f0 = arrayfun(@(col) enforce_min_per(f0(:, col), tau_2, min_per), 1:size(f0, 2), 'UniformOutput', false);
+    % f0 = cell2mat(f0);
     
     f0 = f0 + eps;
 end
 
 function unfiltered_dff = calc_dff_unfiltered(f0, data)
     % Subtract baseline from current fluorescence
-    data = data';
     raw_calc = (data - f0) ./ f0;
     raw_calc(isnan(raw_calc)) = 0;
     unfiltered_dff = raw_calc;
@@ -74,11 +72,11 @@ function dff = filter_dff(unfiltered_dff, tau_0, min_per)
     dff = filter(alpha, [1, alpha-1], unfiltered_dff, [], 1);
     
     % Handle cases where the number of observations is less than min_per
-    dff = arrayfun(@(col) enforce_min_per(dff(:, col), tau_0, min_per), 1:size(dff, 2), 'UniformOutput', false);
-    dff = cell2mat(dff);
-    
-    dff(isnan(dff)) = 0;
-    dff = dff';
+    % dff = arrayfun(@(col) enforce_min_per(dff(:, col), tau_0, min_per), 1:size(dff, 2), 'UniformOutput', false);
+    % dff = cell2mat(dff);
+    % 
+    % dff(isnan(dff)) = 0;
+    % dff = dff';
 end
 
 function column = enforce_min_per(column, window_size, min_per)
