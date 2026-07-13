@@ -49,8 +49,8 @@ voltsPerOpticalDegrees = 0.19231;     % volts per optical degrees for the contro
 settleTime = 0.5;     % settle time in seconds to allow the resonant scanner to turn on
 
 % Calibration Settings
-amplitudeToLinePhaseMap = [0.87 -9.58333e-07;1 -1.06667e-06;1.111 -1.48333e-06;1.176 -1.56667e-06;1.25 -1.775e-06;1.333 -1.68333e-06;1.429 -1.69167e-06;1.538 -1.83333e-06;1.667 -1.975e-06;1.818 -2.025e-06;1.961 -2.025e-06;2 -2.06667e-06;2.222 -2.10833e-06;2.439 -2.19167e-06;2.5 -2.275e-06;2.632 -2.3e-06;2.857 -2.14167e-06;3.333 -2.30833e-06;3.571 -2.38333e-06;4 -2.41667e-06;5 -2.50833e-06;6.667 -2.54167e-06;10 -2.65833e-06;15.385 -2.6e-06;16.667 -2.675e-06;20 -2.61667e-06];     % translates an amplitude (degrees) to a line phase (seconds)
-amplitudeToFrequencyMap = [0.417 7932.49;0.645 7928.84;0.833 7932.87;1.111 7929.74;1.538 7931.49;1.818 7933.81;1.961 7929.51;1.98 7929.18;2 7933.55;2.222 7928.31;2.5 7931.54;2.632 7928.46;2.684 7928.39;2.857 7927.88;3.226 7930.6;3.333 7928.47;4 7929.47;5 7928.15;6.061 7928.62;6.25 7932.58;6.452 7930.16;6.667 7928.83;8.696 7927.83;9.091 7928.57;9.524 7925.34;10 7927.33;13.333 7928.39;15.385 7927.96;16.667 7928.2;18.182 7930.7;20 7928.12];     % translates an amplitude (degrees) to a resonant frequency (Hz)
+amplitudeToLinePhaseMap = [1.111 -1.48333e-06;1.25 -1.69167e-06;1.818 -2.04167e-06;2 -1.95833e-06;2.5 -2.34167e-06;3.333 -2.34167e-06;4 -2.38333e-06;5 -2.48333e-06;6.667 -2.55e-06;10 -2.65833e-06;16.667 -2.675e-06;20 -2.6e-06];     % translates an amplitude (degrees) to a line phase (seconds)
+amplitudeToFrequencyMap = [1.111 7929.74;2 7925.73;2.684 7928.39;2.857 7928.29;3.333 7930.21;5 7928.15;6.061 7928.62;6.667 7929.59;8.696 7927.83;10 7927.33;16.667 7926.7;20 7928.12];     % translates an amplitude (degrees) to a resonant frequency (Hz)
 amplitudeLUT = zeros(0,2);     % translates a nominal amplitude (degrees) to an output amplitude (degrees)
 
 %% dabs.generic.GalvoPureAnalog (GalvoRes Y-Galvo)
@@ -73,7 +73,7 @@ offsetVoltScaling = 1;     % scalar factor for offset volts
 rioDeviceID = 'RIO0';     % FlexRIO Device ID as specified in MAX. If empty, defaults to 'RIO0'
 digitalIODeviceName = 'PXI1Slot2';     % String: Device name of the DAQ board or FlexRIO FPGA that is used for digital inputs/outputs (triggers/clocks etc). If it is a DAQ device, it must be installed in the same PXI chassis as the FlexRIO Digitizer
 
-channelsInvert = [true true false false];     % Logical: Specifies if the input signal is inverted (i.e., more negative for increased light signal)
+channelsInvert = [true true true true];     % Logical: Specifies if the input signal is inverted (i.e., more negative for increased light signal)
 
 externalSampleClock = false;     % Logical: use external sample clock connected to the CLK IN terminal of the FlexRIO digitizer module
 externalSampleClockRate = 8e+07;     % [Hz]: nominal frequency of the external sample clock connected to the CLK IN terminal (e.g. 80e6); actual rate is measured on FPGA
@@ -130,7 +130,7 @@ comPort = 'COM5';     % Serial port the stage is connected to (e.g. 'COM3')
 
 %% dabs.generic.BeamModulatorFastAnalog (Tunable)
 AOControl = '/PXI1Slot4/AO0';     % control terminal  e.g. '/vDAQ0/AO0'
-AIFeedback = '/PXI1Slot4/AI0';     % feedback terminal e.g. '/vDAQ0/AI0'
+AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
 
 outputRange_V = [0 5];     % Control output range in Volts
 feedbackUsesRejectedLight = false;     % Indicates if photodiode is in rejected path of beams modulator.
@@ -159,11 +159,11 @@ referenceClockRate = 1e+07;     % if referenceClockIn is used, referenceClockRat
 
 %% dabs.generic.BeamModulatorFastAnalog (Fix)
 AOControl = '/PXI1Slot4/AO1';     % control terminal  e.g. '/vDAQ0/AO0'
-AIFeedback = '/PXI1Slot4/AI1';     % feedback terminal e.g. '/vDAQ0/AI0'
+AIFeedback = '';     % feedback terminal e.g. '/vDAQ0/AI0'
 
 outputRange_V = [0 5];     % Control output range in Volts
 feedbackUsesRejectedLight = false;     % Indicates if photodiode is in rejected path of beams modulator.
-calibrationOpenShutters = {};     % List of shutters to open during the calibration. (e.g. {'Shutter1' 'Shutter2'}
+calibrationOpenShutters = {'Imaging Shutter'};     % List of shutters to open during the calibration. (e.g. {'Shutter1' 'Shutter2'}
 
 powerFractionLimit = 1;     % Maximum allowed power fraction (between 0 and 1)
 
@@ -189,8 +189,8 @@ referenceClockRate = 1e+07;     % if referenceClockIn is used, referenceClockRat
 %% dabs.generic.DigitalShutter (Imaging Shutter)
 DOControl = '/PXI1Slot4/PFI1';     % control terminal  e.g. '/vDAQ0/DIO0'
 invertOutput = false;     % invert output drive signal to shutter
-openTime_s = 0.25;     % settling time for shutter in seconds
-shutterTarget = 'Detection';     % one of {', 'Excitation', 'Detection'}
+openTime_s = 0.1;     % settling time for shutter in seconds
+shutterTarget = 'Excitation';     % one of {', 'Excitation', 'Detection'}
 
 %% scanimage.components.CoordinateSystems (SI CoordinateSystems)
 % SI Coordinate System Component.

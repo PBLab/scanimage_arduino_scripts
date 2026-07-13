@@ -17,11 +17,11 @@
 long Valve_randNumber;  //random number from 1 to 2 for valve choice
 long Delay_randNumber;  //random number from 15 to 19 for time delay in the loop
 /////////////////////////////// These parameters determine the valve activation timing during the cycle /////////////////////////
-long valveOn = 500;           //the valve open time in the activation sequence, in ms
-long valveOff = 500;          //the valve close time in the activation sequence, in ms
+long valveOn = 100;           //the valve open time in the activation sequence, in ms
+long valveOff = 100;          //the valve close time in the activation sequence, in ms
 
-long cycles_per_stim = 1; //define here the number of cycles (airpuffs) per stimulus 
-long isi_sec = 4;
+long cycles_per_stim = 5; //define here the number of cycles (airpuffs) per stimulus 
+long isi_sec = 3;
 long isi_jitter_sec = 2;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
