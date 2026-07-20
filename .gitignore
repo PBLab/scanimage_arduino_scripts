@@ -1,2 +1,4 @@
 *.tif
 *.asv
+/logs
+/Session_user_functions/dev/logs
