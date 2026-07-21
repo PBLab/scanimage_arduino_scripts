@@ -5,6 +5,7 @@ classdef DffLiveViewer < handle
     properties
         Figure
         Axes_img
+        h2_dff_img
         Axes_trace
         LineHandle
     end
@@ -21,14 +22,14 @@ classdef DffLiveViewer < handle
             else
                 figure(obj.Figure);
                 set(obj.LineHandle, 'XData', NaN, 'YData', NaN);
-                obj.Axes_img = imagesc(NaN(256));
+                obj.h2_dff_img = imagesc(NaN(256));
             end
         end
 
         function update(obj, frame,tSec, dffTrace)
             % FR4: refresh the live plot with the current ordered trace.
             set(obj.LineHandle, 'XData', gather(tSec), 'YData', gather(dffTrace));
-            obj.Axes_img.CData =gather(frame);
+            set(obj.h2_dff_img,'CData',gather(frame));
             drawnow limitrate;
 
         end
@@ -39,7 +40,7 @@ classdef DffLiveViewer < handle
             obj.Figure = figure('Name', 'Real-time df/f', 'NumberTitle', 'off');
             %
             obj.Axes_img= subplot(1,2,1)
-            imagesc(obj.Axes_img,NaN(256));
+            obj.h2_dff_img = imagesc(obj.Axes_img,NaN(256));
             axis image
             axis off
             obj.Axes_trace = subplot(1,2,2);

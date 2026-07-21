@@ -45,7 +45,7 @@ classdef RealtimeDffMonitor < handle
             h = obj.hSI.hRoiManager.linesPerFrame;
             w = obj.hSI.hRoiManager.pixelsPerLine;
             obj.FrameBuffer = zeros(h, w, obj.WindowSamples, 'gpuArray');
-            obj.TraceBuffer = zeros(obj.WindowSamples, 1,'gpuArray');
+            obj.TraceBuffer = zeros(obj.WindowSamples, 1,'gpuArray'); %Modify to keep either trace of dff image or set of traces for defined ROIs
             obj.WritePtr = 0;
             obj.NFilled = 0;
             if isempty(obj.Viewer) || ~isvalid(obj.Viewer)
@@ -76,6 +76,8 @@ classdef RealtimeDffMonitor < handle
             obj.WritePtr = mod(idx, obj.WindowSamples);
             obj.NFilled = min(obj.NFilled + 1, obj.WindowSamples);
 
+            %DFF calculation should be either on the entire image OR on mean
+            %pixel values from defined ROIs
             trace = obj.orderedTrace();
             dff = dff_calc(trace, obj.Fps, obj.DffParams.tau_0, obj.DffParams.tau_1, ...
                 obj.DffParams.tau_2, obj.DffParams.invert);
