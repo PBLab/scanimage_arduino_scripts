@@ -12,10 +12,12 @@ classdef RealtimeDffMonitor < handle
         DffParams         % struct: tau_0, tau_1, tau_2, invert
         LogDir            % directory for per-session reproducibility logs
         FrameBuffer       % gpuArray [H, W, WindowSamples], class matches live frame; [] until first frame
-        TraceBuffer       % gpuArray [WindowSamples, 1] double; per-frame whole-FOV means
         WritePtr          % circular write index, 0-based before mod
         NFilled           % samples written so far, capped at WindowSamples
         Viewer            % DffLiveViewer instance
+        RoiMasks          % struct array (Label, Color, Position, PixelIdx), one per drawn ROI; empty -> whole-FOV
+        LastDffImage      % gpuArray [H, W] double; most recent per-pixel df/f frame (inspection/testing)
+        LastTraceMatrix   % gpuArray [WindowSamples, NTraces] double; most recent whole-FOV/ROI trace(s)
     end
 
     methods
@@ -26,10 +28,12 @@ classdef RealtimeDffMonitor < handle
             obj.DffParams = cfg.dffParams;
             obj.LogDir = cfg.logDir;
             obj.FrameBuffer = [];
-            obj.TraceBuffer = [];
             obj.WritePtr = 0;
             obj.NFilled = 0;
             obj.Viewer = [];
+            obj.RoiMasks = [];
+            obj.LastDffImage = [];
+            obj.LastTraceMatrix = [];
         end
 
         function Reset(obj)
@@ -44,63 +48,131 @@ classdef RealtimeDffMonitor < handle
             %
             h = obj.hSI.hRoiManager.linesPerFrame;
             w = obj.hSI.hRoiManager.pixelsPerLine;
+            obj.FrameBuffer = [];
             obj.FrameBuffer = zeros(h, w, obj.WindowSamples, 'gpuArray');
-            obj.TraceBuffer = zeros(obj.WindowSamples, 1,'gpuArray'); %Modify to keep either trace of dff image or set of traces for defined ROIs
-            obj.WritePtr = 0;
-            obj.NFilled = 0;
+
+            % Viewer must exist (with a live Axes_img) before we scan it for ROIs.
             if isempty(obj.Viewer) || ~isvalid(obj.Viewer)
                 obj.Viewer = DffLiveViewer();
             else
                 obj.Viewer.reset();
             end
 
+            % FR: df/f is computed on the entire image, OR on the set of ROIs
+            % drawn on the viewer (whichever is present) — masks are computed
+            % once here and frozen for the whole acquisition (see lockRois()).
+            obj.RoiMasks = obj.buildRoiMasks(h, w);
+            if isempty(obj.RoiMasks)
+                obj.Viewer.setTraces({'whole FOV'}, [0 0.4470 0.7410]);
+            else
+                obj.Viewer.setTraces({obj.RoiMasks.Label}, cat(1, obj.RoiMasks.Color));
+            end
+
+            obj.WritePtr = 0;
+            obj.NFilled = 0;
+            obj.LastDffImage = [];
+            obj.LastTraceMatrix = [];
         end
         
         function onAcqModeStart(obj, src, evt) %#ok<INUSD>
-            fprintf('---------------------------- AcqModStart -----------------------\n')
+            fprintf('---------------------------- Focus/AcqMod Start -----------------------\n')
+            disp(obj.hSI.acqState)
             obj.Reset
             cfg = struct('channelIdx', obj.ChannelIdx, 'windowSeconds', obj.WindowSeconds, ...
-                'dffParams', obj.DffParams);
+                'dffParams', obj.DffParams, 'roiSet', obj.roiSetSummary());
             dff_log_session(cfg, obj.Fps, obj.LogDir);
+            obj.Viewer.lockRois();
+            drawnow limitrate 
         end
 
         function onFrameAcquired(obj, src, evt) %#ok<INUSD>
-            % FR3, FR4: push the newest frame into the circular buffers, recompute
-            % df/f over the full ordered trace, and update the live plot.
+            % Push the newest frame into the circular raw-frame buffer, then compute
+            % df/f on the entire image: reshape the ordered (old->new) frame buffer
+            % into a [time x pixels] matrix, run dff_calc once, and derive both the
+            % displayed df/f image (most recent frame) and the whole-FOV/ROI traces
+            % (spatial means) from that single per-pixel result.
             frame = si_get_last_frame(obj.hSI, obj.ChannelIdx);
 
             idx = obj.WritePtr + 1;
             obj.FrameBuffer(:, :, idx) = gpuArray(frame);
-            obj.TraceBuffer(idx) = mean(double(frame(:)));
 
             obj.WritePtr = mod(idx, obj.WindowSamples);
             obj.NFilled = min(obj.NFilled + 1, obj.WindowSamples);
 
-            %DFF calculation should be either on the entire image OR on mean
-            %pixel values from defined ROIs
-            trace = obj.orderedTrace();
-            dff = dff_calc(trace, obj.Fps, obj.DffParams.tau_0, obj.DffParams.tau_1, ...
-                obj.DffParams.tau_2, obj.DffParams.invert);
+            % Reorder oldest->newest. Not yet wrapped: 1:NFilled is already old->new,
+            % nothing to shift. Wrapped: a single circshift reorders in one pass
+            % (vs. slicing two chunks + cat, which allocates each slice separately).
+            if obj.NFilled < obj.WindowSamples
+                framesOrdered = obj.FrameBuffer(:, :, 1:obj.NFilled);
+            else
+                framesOrdered = circshift(obj.FrameBuffer, -obj.WritePtr, 3);
+            end
+
+            [h, w, n] = size(framesOrdered);
+            pixelTraces = reshape(double(framesOrdered), h * w, n).';   % N x (H*W), time x pixels
+
+            pixelDff = dff_calc(pixelTraces, obj.Fps, obj.DffParams.tau_0, obj.DffParams.tau_1, ...
+                obj.DffParams.tau_2, obj.DffParams.invert);              % N x (H*W)
+
+            dffImage = reshape(pixelDff(end, :), h, w);
+
+            if isempty(obj.RoiMasks)
+                traceMatrix = mean(pixelDff, 2);
+            else
+                traceMatrix = zeros(n, numel(obj.RoiMasks), 'like', pixelDff);
+                for i = 1:numel(obj.RoiMasks)
+                    traceMatrix(:, i) = mean(pixelDff(:, obj.RoiMasks(i).PixelIdx), 2);
+                end
+            end
+
+            obj.LastDffImage = dffImage;
+            obj.LastTraceMatrix = traceMatrix;
 
             tSec = (0:obj.NFilled - 1)' / obj.Fps;
-            obj.Viewer.update(frame,tSec, dff);
+            obj.Viewer.update(dffImage, tSec, traceMatrix);
+        end
+
+        function onAcqDone(obj, src, evt) %#ok<INUSD>
+            % Unfreeze ROI editing now that the acquisition has stopped.
+            if ~isempty(obj.Viewer) && isvalid(obj.Viewer)
+                obj.Viewer.unlockRois();
+                drawnow limitrate
+            end
         end
 
         function trace = currentTrace(obj)
-            % Read-only accessor for the current chronologically-ordered trace.
+            % Read-only accessor for the most recent whole-FOV/ROI trace(s).
             % Exposed for inspection/testing; not used internally.
-            trace = obj.orderedTrace();
+            trace = obj.LastTraceMatrix;
         end
     end
 
     methods (Access = private)
-        function trace = orderedTrace(obj)
-            % Returns TraceBuffer reordered oldest->newest for dff_calc.
-            % See tasks/design_realtime_dff.md §7 for the derivation.
-            if obj.NFilled < obj.WindowSamples
-                trace = obj.TraceBuffer(1:obj.NFilled);
+        function masks = buildRoiMasks(obj, h, w)
+            % Scans the viewer's image axes for polygon ROIs (Tag == 'ROI') and
+            % converts each to a cached pixel-index mask via poly2mask, matching
+            % the convention used by Session_analysis/app/Utils/extract_traces.m.
+            % Called once per Reset() (acqModeStart) — never per-frame.
+            rois = findobj(obj.Viewer.Axes_img, 'Tag', 'ROI');
+            masks = struct('Label', {}, 'Color', {}, 'Position', {}, 'PixelIdx', {});
+            for i = 1:numel(rois)
+                v = rois(i).Position;
+                mask = poly2mask(v(:, 1), v(:, 2), h, w);
+                masks(i).Label = rois(i).Label;
+                masks(i).Color = rois(i).Color;
+                masks(i).Position = v;
+                masks(i).PixelIdx = find(mask);
+            end
+        end
+
+        function s = roiSetSummary(obj)
+            % Reproducibility-log payload (CLAUDE.md §3): what was actually
+            % measured this run, not just the tau/window parameters.
+            if isempty(obj.RoiMasks)
+                s = 'whole-FOV';
             else
-                trace = [obj.TraceBuffer(obj.WritePtr + 1:end); obj.TraceBuffer(1:obj.WritePtr)];
+                s = struct('Label', {obj.RoiMasks.Label}, 'Position', {obj.RoiMasks.Position}, ...
+                    'Color', {obj.RoiMasks.Color});
             end
         end
     end

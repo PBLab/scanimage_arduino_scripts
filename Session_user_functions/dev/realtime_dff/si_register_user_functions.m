@@ -3,11 +3,12 @@ function si_register_user_functions(hSI, status) %#ok<INUSD>
 % Updated by PB
 
 %% ensure user functions are enabled.
-func_names = {'dff_on_acq_mode_start','dff_on_frame_acquired','dff_realtime_cleanup'};
-event_names = {'acqModeStart','frameAcquired','acqDone'};
-arguments ={{},{},{}};
-enable_on = {1,1,1};
-enable_off = {0,0,0};
+func_names = {'dff_on_acq_mode_start','dff_on_acq_mode_start','dff_on_frame_acquired',...
+    'dff_realtime_cleanup','dff_realtime_cleanup','dff_realtime_cleanup'};
+event_names = {'focusStart','acqModeStart','frameAcquired','acqDone','focusDone','acqAbort'};
+arguments ={{},{},{},{},{},{}};
+enable_on = {1,1,1,1,1,1};
+enable_off = {0,0,0,0,0,0};
 user_func_on = struct('EventName',event_names,'UserFcnName',func_names,'Arguments',arguments,'Enable',enable_on);
 user_func_off= struct('EventName',event_names,'UserFcnName',func_names,'Arguments',arguments,'Enable',enable_off);
 

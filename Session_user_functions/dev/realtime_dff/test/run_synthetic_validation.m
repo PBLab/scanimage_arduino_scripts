@@ -58,7 +58,10 @@ function run_synthetic_validation()
     logDir = fullfile(thisDir, 'synthetic_logs');  % clearly labeled synthetic output
 
     % --- Drive the pipeline exactly as ScanImage would, minus the adapters ---
-    hSI = struct('note', 'synthetic placeholder — unused, adapters are faked');
+    % hRoiManager.linesPerFrame/pixelsPerLine are read directly by Reset() (not
+    % via a faked adapter), so the stub must provide them matching H/W above.
+    hSI = struct('note', 'synthetic placeholder — unused, adapters are faked', ...
+        'hRoiManager', struct('linesPerFrame', H, 'pixelsPerLine', W));
     cfgOverrides = struct('channelIdx', 1, 'windowSeconds', windowSeconds, 'logDir', logDir);
 
     dff_realtime_init(hSI, cfgOverrides);
@@ -94,7 +97,7 @@ function run_synthetic_validation()
     dffParams = dff_default_params().dffParams;
     offlineDff = gather(dff_calc(gpuArray(expectedTrace), fps, dffParams.tau_0, dffParams.tau_1, ...
         dffParams.tau_2, dffParams.invert));
-    liveDff = gather(get(mon.Viewer.LineHandle, 'YData'))';
+    liveDff = gather(get(mon.Viewer.LineHandles(1), 'YData'))';
     dffMaxAbsDiff = max(abs(liveDff - offlineDff));
     assert(dffMaxAbsDiff < 1e-6, 'Live viewer dff diverges from offline dff_calc: maxAbsDiff=%.3g', dffMaxAbsDiff);
 
@@ -111,9 +114,17 @@ function run_synthetic_validation()
         peakIdx, expectedPeakIdx, peakLagSamples);
 
     % --- Check 6: acqModeStart discards prior state (AC4) ---
+    % Reset() always reallocates FrameBuffer/TraceBuffer to fresh zero-filled
+    % arrays (never to []), so AC4 is checked via content/state, not isempty.
     dff_on_acq_mode_start(struct(), struct());
-    assert(isempty(mon.FrameBuffer) && isempty(mon.TraceBuffer), 'FrameBuffer/TraceBuffer not cleared on new acqModeStart');
+    assert(all(gather(mon.FrameBuffer(:)) == 0), 'FrameBuffer not zero-reset on new acqModeStart');
+    assert(all(gather(mon.TraceBuffer(:)) == 0), 'TraceBuffer not zero-reset on new acqModeStart');
     assert(mon.NFilled == 0 && mon.WritePtr == 0, 'NFilled/WritePtr not reset on new acqModeStart');
+
+    % --- ROI extraction scenario (Stage 1 signal injection, CLAUDE.md §8) ---
+    % Reuses the same monitor singleton, matching real usage: ROIs are drawn
+    % while idle between acquisitions, then acqModeStart freezes them.
+    roiDiag = test_roi_extraction(mon);
 
     % --- Cleanup ---
     if ~isempty(mon.Viewer) && isvalid(mon.Viewer) && isvalid(mon.Viewer.Figure)
@@ -129,4 +140,128 @@ function run_synthetic_validation()
         injCenterFrame, injAmplitude, injSigmaFrames);
     fprintf('recovered peak: sample %d (expected ~%d), value=%.4f, baseline=%.4f, lag=%d samples\n', ...
         peakIdx, expectedPeakIdx, peakVal, baselineDff, peakLagSamples);
+    fprintf('ROI_in peak-baseline=%.4f (expected >0.05), ROI_out peak-baseline=%.4f (expected <0.02)\n', ...
+        roiDiag.inPeak, roiDiag.outPeak);
+    fprintf('ROI trace reconstruction maxAbsDiff: in=%.3g, out=%.3g (tol 1e-6)\n', ...
+        roiDiag.inTraceDiff, roiDiag.outTraceDiff);
+end
+
+function roiDiag = test_roi_extraction(mon)
+    % Stage 1 (Signal Injection) extension covering per-ROI extraction
+    % (CLAUDE.md §8): injects a transient confined to one spatial quadrant of
+    % the frame, draws two disjoint ROIs on the live viewer (one covering the
+    % injected region, one a disjoint control), and verifies the pipeline
+    % recovers the transient only in the ROI that actually covers it. Also
+    % checks mask caching, trace-matrix shape, and the lock/unlock-on-acqDone
+    % behavior. Labeled synthetic per CLAUDE.md — generator kept versioned here
+    % alongside the whole-FOV scenario, not thrown away.
+
+    seed = 43;
+    rng(seed);
+
+    fps = 30;
+    windowSeconds = 20;
+    windowSamples = round(fps * windowSeconds);
+    H = 16; W = 16;
+    nFrames = 900;
+    baseline = 200;
+    pixelNoiseStd = 1.0;
+
+    injCenterFrame = 800;
+    injSigmaFrames = 15;
+    injAmplitude = 60;
+
+    % Injected region vs. a disjoint, uninjected control region.
+    inRows = 1:8; inCols = 1:8;
+    outRows = 9:16; outCols = 9:16;
+
+    t = (1:nFrames)';
+    injectedTimecourse = injAmplitude * exp(-0.5 * ((t - injCenterFrame) / injSigmaFrames).^2);
+
+    frameStackDouble = baseline + pixelNoiseStd * randn(H, W, nFrames);
+    for k = 1:nFrames
+        frameStackDouble(inRows, inCols, k) = frameStackDouble(inRows, inCols, k) + injectedTimecourse(k);
+    end
+    frameStack = int16(round(frameStackDouble));
+
+    groundTruthIn = squeeze(mean(mean(double(frameStack(inRows, inCols, :)), 1), 2));
+    groundTruthOut = squeeze(mean(mean(double(frameStack(outRows, outCols, :)), 1), 2));
+
+    assignin('base', 'testFrameStack', frameStack);
+    assignin('base', 'testFps', fps);
+    clear si_get_last_frame  % reset the fake's persistent frame index for the new stack
+
+    % --- Draw two disjoint ROIs on the live viewer. Vertices span [n-0.5, n+0.5]
+    % per pixel index, matching the poly2mask/extract_traces.m convention, so an
+    % N-pixel span covers exactly rows/cols 1:N. ---
+    ax = mon.Viewer.Axes_img;
+    roiIn = drawpolygon(ax, 'Position', ...
+        [inCols(1)-0.5, inRows(1)-0.5; inCols(end)+0.5, inRows(1)-0.5; ...
+         inCols(end)+0.5, inRows(end)+0.5; inCols(1)-0.5, inRows(end)+0.5]);
+    roiIn.Tag = 'ROI'; roiIn.Label = 'ROI_in'; roiIn.Color = [1 0 0];
+
+    roiOut = drawpolygon(ax, 'Position', ...
+        [outCols(1)-0.5, outRows(1)-0.5; outCols(end)+0.5, outRows(1)-0.5; ...
+         outCols(end)+0.5, outRows(end)+0.5; outCols(1)-0.5, outRows(end)+0.5]);
+    roiOut.Tag = 'ROI'; roiOut.Label = 'ROI_out'; roiOut.Color = [0 0 1];
+
+    % --- acqModeStart: computes+caches masks, locks ROI editing ---
+    dff_on_acq_mode_start(struct(), struct());
+
+    assert(numel(mon.RoiMasks) == 2, 'Expected 2 cached ROI masks, got %d', numel(mon.RoiMasks));
+    assert(size(mon.TraceBuffer, 2) == 2, 'TraceBuffer should have 2 columns in ROI mode, got %d', size(mon.TraceBuffer, 2));
+
+    expectedInMask = false(H, W);
+    expectedInMask(inRows, inCols) = true;
+    expectedOutMask = false(H, W);
+    expectedOutMask(outRows, outCols) = true;
+
+    labels = {mon.RoiMasks.Label};
+    inIdx = find(strcmp(labels, 'ROI_in'));
+    outIdx = find(strcmp(labels, 'ROI_out'));
+    assert(isequal(sort(mon.RoiMasks(inIdx).PixelIdx), find(expectedInMask)), ...
+        'ROI_in cached mask does not match the drawn polygon''s expected pixels');
+    assert(isequal(sort(mon.RoiMasks(outIdx).PixelIdx), find(expectedOutMask)), ...
+        'ROI_out cached mask does not match the drawn polygon''s expected pixels');
+
+    % --- Lock state: editing must be frozen while "running" ---
+    assert(strcmp(mon.Viewer.AddRoiButton.Enable, 'off'), 'Add-ROI button should be disabled while streaming');
+    assert(strcmp(roiIn.InteractionsAllowed, 'none') && ~roiIn.Deletable, 'ROI_in should be locked while streaming');
+    assert(strcmp(roiOut.InteractionsAllowed, 'none') && ~roiOut.Deletable, 'ROI_out should be locked while streaming');
+
+    for k = 1:nFrames
+        dff_on_frame_acquired(struct(), struct());
+    end
+
+    % --- Trace reconstruction matches ground truth, per ROI ---
+    liveTrace = gather(mon.currentTrace());
+    windowStartFrame = nFrames - windowSamples + 1;
+    expectedIn = groundTruthIn(windowStartFrame:nFrames);
+    expectedOut = groundTruthOut(windowStartFrame:nFrames);
+
+    inDiff = max(abs(liveTrace(:, inIdx) - expectedIn));
+    outDiff = max(abs(liveTrace(:, outIdx) - expectedOut));
+    assert(inDiff < 1e-6, 'ROI_in trace diverges from ground truth: maxAbsDiff=%.3g', inDiff);
+    assert(outDiff < 1e-6, 'ROI_out trace diverges from ground truth: maxAbsDiff=%.3g', outDiff);
+
+    % --- Recovered transient: present in ROI_in, absent in ROI_out ---
+    dffParams = dff_default_params().dffParams;
+    dffIn = gather(dff_calc(gpuArray(expectedIn), fps, dffParams.tau_0, dffParams.tau_1, dffParams.tau_2, dffParams.invert));
+    dffOut = gather(dff_calc(gpuArray(expectedOut), fps, dffParams.tau_0, dffParams.tau_1, dffParams.tau_2, dffParams.invert));
+
+    inPeak = max(dffIn) - median(dffIn);
+    outPeak = max(dffOut) - median(dffOut);
+    assert(inPeak > 0.05, 'ROI_in should recover the injected transient: peak-baseline=%.4f (expected > 0.05)', inPeak);
+    assert(outPeak < 0.02, 'ROI_out should NOT show the injected transient: peak-baseline=%.4f (expected < 0.02)', outPeak);
+
+    % --- acqDone: unlocks ROI editing ---
+    dff_realtime_cleanup(struct(), struct());
+    assert(strcmp(mon.Viewer.AddRoiButton.Enable, 'on'), 'Add-ROI button should be re-enabled after acqDone');
+    assert(strcmp(roiIn.InteractionsAllowed, 'all') && roiIn.Deletable, 'ROI_in should be unlocked after acqDone');
+    assert(strcmp(roiOut.InteractionsAllowed, 'all') && roiOut.Deletable, 'ROI_out should be unlocked after acqDone');
+
+    delete(roiIn);
+    delete(roiOut);
+
+    roiDiag = struct('inPeak', inPeak, 'outPeak', outPeak, 'inTraceDiff', inDiff, 'outTraceDiff', outDiff);
 end
